@@ -1,7 +1,6 @@
 {
   "name": "pasadium",
   "version": "1.0.0",
-   HEAD
   "description": "",
   "main": "index.js",
   "directories": {
@@ -9,7 +8,6 @@
   },
   "packageManager": "npm@11.5.2",
   "private": true,
-  dae1a88 (Initial commit: Complete PASADIUM platform blueprint)
   "workspaces": [
     "apps/*",
     "packages/*"
@@ -18,6 +16,5 @@
     "build": "turbo build",
     "dev": "turbo dev",
     "lint": "turbo lint"
-  },
-  "packageManager": "npm@10.8.2"
+  }
 }
