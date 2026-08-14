@@ -30,3 +30,7 @@ Thumbs.db
 # Turborepo generated files
 .turbo/
 **/.turbo/
+
+# Turborepo generated files
+.turbo/
+**/.turbo/
