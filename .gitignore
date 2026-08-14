@@ -1,10 +1,32 @@
-node_modules
-.next
-out
-.turbo
-.DS_Store
-*.log
-.env
+# Dependencies
+node_modules/
+.pnpm-store/
 
-# Local editor configuration
+# Next.js build outputs
+.next/
+out/
+build/
+dist/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Database
+*.db
+*.db-journal
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDEs
 .vscode/
+.idea/
+
+# Turborepo generated files
+.turbo/
+**/.turbo/

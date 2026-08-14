@@ -1,0 +1,46 @@
+@import "../shared/ui/globals.css";
+
+:root {
+  /* Admin specific color overrides if needed */
+}
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+.admin-stat-card {
+  padding: 24px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-primary);
+  border-radius: 8px;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.admin-table th {
+  text-align: left;
+  padding: 12px;
+  border-bottom: 2px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+.admin-table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.9rem;
+}
+
+.severity-critical { color: #ef4444; font-weight: bold; }
+.severity-high { color: #f97316; }
+.severity-medium { color: #eab308; }
+.severity-low { color: var(--color-text-muted); }
+
+.status-active { color: #22c55e; }
+.status-suspended { color: #ef4444; }

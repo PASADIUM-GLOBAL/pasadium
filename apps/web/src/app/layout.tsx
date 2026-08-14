@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { brandConfig } from "config";
-import { Container } from "ui";
+import { brand } from "@shared/config";
+import { Container } from "@shared/ui";
 
 export const metadata: Metadata = {
   title: {
-    template: `%s | ${brandConfig.name}`,
-    default: brandConfig.name,
+    template: `%s | ${brand.name}`,
+    default: brand.name,
   },
-  description: brandConfig.description,
+  description: brand.description,
 };
 
 export default function RootLayout({
@@ -22,7 +22,7 @@ export default function RootLayout({
         <header className="site-header">
           <Container>
             <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 0' }}>
-              <a href="/" style={{ fontWeight: 'bold', fontSize: '1.2rem' }}>{brandConfig.name}</a>
+              <a href="/" style={{ fontWeight: 'bold', fontSize: '1.2rem' }}>{brand.name}</a>
               <div style={{ display: 'flex', gap: '20px' }}>
                 <a href="/about">About</a>
                 <a href="/platform">Platform</a>
@@ -40,7 +40,7 @@ export default function RootLayout({
         <footer className="site-footer">
           <Container>
             <div style={{ padding: '40px 0', borderTop: '1px solid var(--color-border)', marginTop: '80px' }}>
-              <p>© {new Date().getFullYear()} {brandConfig.name}. All rights reserved.</p>
+              <p>© {new Date().getFullYear()} {brand.name}. All rights reserved.</p>
             </div>
           </Container>
         </footer>

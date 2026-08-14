@@ -1,18 +1,26 @@
-import { PageHeader } from "ui";
-import { Container } from "ui";
+import { PageHeader } from "@shared/ui";
+import { Container } from "@shared/ui";
 
-export default function DocsPage() {
+
+export default function DocumentationPage() {
   return (
     <main>
-      <PageHeader 
-        eyebrow="DOCUMENTATION" 
-        title="PASADIUM documentation." 
-        description="Documentation for platform capabilities, products, services, and developer resources." 
+      <PageHeader
+        eyebrow="DOCUMENTATION"
+        title="PASADIUM documentation."
+        description="Documentation for platform capabilities, products, services, and developer resources."
       />
-      <section style={{ padding: '60px 0' }}>
+
+
+      <section>
         <Container>
           <h2>Documentation is coming together.</h2>
-          <p>Public documentation will provide information about PASADIUM products.</p>
+
+
+          <p>
+            Public documentation will provide information about PASADIUM
+            products, supported capabilities, and developer resources.
+          </p>
         </Container>
       </section>
     </main>

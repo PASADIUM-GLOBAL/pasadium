@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id           String       @id @default(uuid())
+  username     String       @unique
+  passwordHash String
+  email        String       @unique
+  roles        String       // Stored as comma-separated values for SQLite
+  createdAt    DateTime     @default(now())
+  portfolios   Portfolio[]
+}
+
+model Asset {
+  id         String       @id @default(uuid())
+  ticker     String       @unique
+  name       String
+  portfolios Portfolio[]
+}
+
+model Portfolio {
+  id       String  @id @default(uuid())
+  userId   String
+  assetId  String
+  amount   String
+  value    String
+  pnl      String
+  up       Boolean
+  user     User    @relation(fields: [userId], references: [id])
+  asset    Asset   @relation(fields: [assetId], references: [id])
+}
+
+model Product {
+  id          String @id @default(uuid())
+  name        String
+  price       Int
+  description String
+}
+
+model SecurityLog {
+  id        String   @id @default(uuid())
+  timestamp DateTime @default(now())
+  event     String
+  userId    String?
+  severity  String
+  status    String
+}

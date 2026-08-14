@@ -1,17 +1,23 @@
-import { PageHeader } from "ui";
-import { Container } from "ui";
+import { PageHeader } from "@shared/ui";
+import { Container } from "@shared/ui";
+
 
 export default function ContactPage() {
   return (
     <main>
-      <PageHeader 
-        eyebrow="CONTACT" 
-        title="Connect with PASADIUM." 
-        description="For general inquiries, partnerships, support, and other platform-related matters." 
+      <PageHeader
+        eyebrow="CONTACT"
+        title="Connect with PASADIUM."
+        description="For general inquiries, partnerships, support, and other platform-related matters."
       />
-      <section style={{ padding: '60px 0' }}>
+
+
+      <section>
         <Container>
-          <p>Contact channels will be published here as PASADIUM services become available.</p>
+          <p>
+            Contact channels will be published here as PASADIUM services
+            become available.
+          </p>
         </Container>
       </section>
     </main>

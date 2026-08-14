@@ -1,20 +1,23 @@
 {
   "name": "pasadium",
   "version": "1.0.0",
+   HEAD
   "description": "",
   "main": "index.js",
   "directories": {
     "doc": "docs"
   },
   "packageManager": "npm@11.5.2",
+  "private": true,
+  dae1a88 (Initial commit: Complete PASADIUM platform blueprint)
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "lint": "turbo lint"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "packageManager": "npm@10.8.2"
 }

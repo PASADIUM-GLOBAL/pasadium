@@ -1,15 +1,15 @@
-import { Container, Button, Card } from "ui";
-import { brandConfig } from "config";
+import { Container, Button, Card } from "@shared/ui";
+import { brand } from "@shared/config";
 
 export default function Home() {
   return (
     <main>
       <section className="hero" style={{ padding: '100px 0', textAlign: 'center' }}>
         <Container>
-          <p style={{ color: 'var(--color-text-muted)', fontWeight: 'bold' }}>{brandConfig.name} GLOBAL</p>
+          <p style={{ color: 'var(--color-text-muted)', fontWeight: 'bold' }}>{brand.name} GLOBAL</p>
           <h1 style={{ margin: '20px 0' }}>Building the digital infrastructure for what comes next.</h1>
           <p style={{ fontSize: '1.2rem', color: 'var(--color-text-secondary)', maxWidth: '800px', margin: '0 auto 40px' }}>
-            {brandConfig.description}
+            {brand.description}
           </p>
           <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
             <Button variant="primary">Explore Platform</Button>
