@@ -36,6 +36,17 @@ model Portfolio {
   asset    Asset   @relation(fields: [assetId], references: [id])
 }
 
+model Order {
+  id        String   @id @default(uuid())
+  userId    String
+  assetId   String
+  type      String   // BUY or SELL
+  amount    String
+  price     String
+  status    String   // PENDING, COMPLETED, CANCELLED
+  createdAt DateTime @default(now())
+}
+
 model Product {
   id          String @id @default(uuid())
   name        String

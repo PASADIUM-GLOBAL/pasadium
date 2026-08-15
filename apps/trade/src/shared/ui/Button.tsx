@@ -5,12 +5,14 @@ interface ButtonProps {
   onClick?: () => void;
   className?: string;
   variant?: 'primary' | 'secondary';
+  disabled?: boolean;
+  style?: React.CSSProperties;
 }
 
-export function Button({ children, onClick, className = '', variant = 'primary' }: ButtonProps) {
+export function Button({ children, onClick, className = '', variant = 'primary', disabled = false, style }: ButtonProps) {
   const btnClass = `button button-${variant} ${className}`;
   return (
-    <button onClick={onClick} className={btnClass}>
+    <button onClick={onClick} className={btnClass} disabled={disabled} style={style}>
       {children}
     </button>
   );

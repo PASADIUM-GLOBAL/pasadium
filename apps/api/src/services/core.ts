@@ -3,20 +3,20 @@ import { db } from "@pasadium/db";
 export const tradeService = {
   getTickers: async () => {
     const assets = await db.asset.findMany();
-    // In a real app, prices would come from a market data feed/cache
-    return assets.map(asset => ({
+    return assets.map((asset: any) => ({
       asset: asset.ticker,
-      price: '64,000.00', // Mocked price
+      price: '64,000.00', // Mocked current price
       change: '+1.2%',
       up: true,
     }));
   },
+
   getPortfolio: async (userId: string) => {
     const portfolios = await db.portfolio.findMany({
       where: { userId },
       include: { asset: true }
     });
-    return portfolios.map(p => ({
+    return portfolios.map((p: any) => ({
       asset: p.asset.ticker,
       amount: p.amount,
       value: p.value,
@@ -24,11 +24,65 @@ export const tradeService = {
       up: p.up,
     }));
   },
+
+  placeOrder: async (userId: string, assetTicker: string, type: 'BUY' | 'SELL', amount: string, price: string) => {
+    const asset = await db.asset.findUnique({ where: { ticker: assetTicker } });
+    if (!asset) throw new Error('Asset not found');
+
+    const order = await db.order.create({
+      data: {
+        userId,
+        assetId: asset.id,
+        type,
+        amount,
+        price,
+        status: 'COMPLETED',
+      },
+    });
+
+    // Update Portfolio
+    const portfolio = await db.portfolio.findFirst({
+      where: { userId, assetId: asset.id }
+    });
+
+    if (portfolio) {
+      // Simplified math: just updating the value for the blueprint
+      await db.portfolio.update({
+        where: { id: portfolio.id },
+        data: { amount: 'Updated' } // In real app: parse float and add/sub
+      });
+    } else if (type === 'BUY') {
+      await db.portfolio.create({
+        data: {
+          userId,
+          assetId: asset.id,
+          amount,
+          value: price,
+          pnl: '0',
+          up: true,
+        },
+      });
+    }
+
+    return order;
+  },
 };
 
 export const marketService = {
   getProducts: async () => {
     return db.product.findMany();
+  },
+  purchaseProduct: async (userId: string, productId: string) => {
+    const product = await db.product.findUnique({ where: { id: productId } });
+    if (!product) throw new Error('Product not found');
+    
+    // Simulate purchase
+    return {
+      success: true,
+      orderId: Math.random().toString(36).substring(7),
+      product: product.name,
+      amount: product.price,
+    };
   },
 };
 
@@ -43,10 +97,10 @@ export const adminService = {
   },
   getUsers: async () => {
     const users = await db.user.findMany();
-    return users.map(u => ({
+    return users.map((u: any) => ({
       id: u.id,
       username: u.username,
-      role: u.roles.split(',')[0], // Simplified
+      role: u.roles.split(',')[0],
     }));
   },
 };

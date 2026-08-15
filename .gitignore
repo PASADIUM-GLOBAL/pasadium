@@ -2,11 +2,12 @@
 node_modules/
 .pnpm-store/
 
-# Next.js build outputs
+# Build outputs
 .next/
 out/
 build/
 dist/
+.turbo/
 
 # Environment variables
 .env
@@ -27,10 +28,5 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Turborepo generated files
-.turbo/
-**/.turbo/
-
-# Turborepo generated files
-.turbo/
-**/.turbo/
+# Logs
+*.log
