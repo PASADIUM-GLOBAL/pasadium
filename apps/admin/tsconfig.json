@@ -26,11 +26,20 @@
       "@/*": [
         "./src/*"
       ],
-      "@shared/ui": [
-        "./src/shared/ui"
+      "@pasadium/ui": [
+        "../../packages/ui/src/index"
       ],
-      "@shared/config": [
-        "./src/shared/config"
+      "@pasadium/config": [
+        "../../packages/config/src/index"
+      ],
+      "@pasadium/api": [
+        "../../packages/api/src/index"
+      ],
+      "@pasadium/auth": [
+        "../../packages/auth/src/index"
+      ],
+      "@pasadium/utils": [
+        "../../packages/utils/src/index"
       ]
     }
   },

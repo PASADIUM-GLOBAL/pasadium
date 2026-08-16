@@ -1,4 +1,4 @@
-@import "../shared/ui/globals.css";
+@import "@pasadium/ui/globals.css";
 
 :root {
   /* Admin specific color overrides if needed */

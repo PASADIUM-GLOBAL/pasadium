@@ -1,7 +1,7 @@
 "use client";
 import React from 'react';
-import { Container } from "@shared/ui";
-import { brand } from "@shared/config";
+import { Container } from "@pasadium/ui";
+import { brand } from "@pasadium/config";
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
   return (

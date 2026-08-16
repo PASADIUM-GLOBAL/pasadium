@@ -1,8 +1,8 @@
 "use client";
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { apiClient } from "@shared/utils";
-import { API_CONFIG } from "@shared/utils";
+import { apiClient } from "@pasadium/utils";
+import { API_CONFIG } from "@pasadium/utils";
 
 export default function LoginCallback() {
   const router = useRouter();

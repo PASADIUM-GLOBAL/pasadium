@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card } from "@shared/ui";
+import { Card } from "@pasadium/ui";
 import { MediaContent } from "@pasadium/api";
 
 interface ContentCardProps {

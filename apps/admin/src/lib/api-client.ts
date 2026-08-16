@@ -1,4 +1,4 @@
-import { apiClient } from "../shared/utils/api-client";
+import { apiClient } from "@pasadium/utils";
 import { SystemHealth, AdminUser } from "@/lib/mock-api";
 
 export const adminApi = {

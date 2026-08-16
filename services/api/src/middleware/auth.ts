@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { writeSecurityLog } from '../services/security-log';
+import { AuthenticatedRequest } from '../types';
 
 function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET;
@@ -29,7 +30,7 @@ async function auditAuthFailure(
 }
 
 export async function authMiddleware(
-  req: Request,
+  req: AuthenticatedRequest,
   res: Response,
   next: NextFunction,
 ) {
@@ -108,7 +109,7 @@ export async function authMiddleware(
 
 export function roleMiddleware(requiredRole: string) {
   return async (
-    req: Request,
+    req: AuthenticatedRequest,
     res: Response,
     next: NextFunction,
   ) => {

@@ -1,6 +1,8 @@
 import 'dotenv/config';
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
+import rateLimit from 'express-rate-limit';
+import { z } from 'zod';
 import { db } from '@pasadium/db';
 import { login } from './services/auth';
 import { authMiddleware, roleMiddleware } from './middleware/auth';
@@ -12,19 +14,91 @@ import {
   tradeService,
   marketService,
   adminService,
+  mediaService,
 } from './services/core';
+
+interface AuthenticatedRequest extends Request {
+  user?: {
+    sub: string;
+    username: string;
+    roles: string;
+  };
+}
+
+// Validation Schemas
+const OrderSchema = z.object({
+  asset: z.string().min(1),
+  type: z.enum(['BUY', 'SELL']),
+  amount: z.string().regex(/^\d+(\.\d+)?$/),
+  price: z.string().regex(/^\d+(\.\d+)?$/),
+});
+
+const PublishSchema = z.object({
+  title: z.string().min(1).max(255),
+  type: z.enum(['article', 'video', 'podcast', 'report']),
+  category: z.string().min(1),
+  tags: z.array(z.string()).optional(),
+  url: z.string().url().optional(),
+});
+
+const StatusSchema = z.object({
+  status: z.enum(['DRAFT', 'REVIEW', 'APPROVED', 'PUBLISHED', 'ARCHIVED']),
+});
 
 const app = express();
 const port = Number(process.env.PORT ?? 4000);
-const ALLOWED_ROLES = [
-  'Trader',
-  'SuperAdmin',
-] as const;
+
+// Production CORS Allowlist
+const ALLOWED_ORIGINS = [
+  'https://pasadium.tech',
+  'https://www.pasadium.tech',
+  'https://admin.pasadium.tech',
+  'https://trade.pasadium.tech',
+  'https://media.pasadium.tech',
+  'https://market.pasadium.tech',
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:3002',
+  'http://localhost:3003',
+  'http://localhost:3004',
+  'http://localhost:3005',
+];
+
+const corsOptions = {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+};
+
+// Rate Limiters
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // Limit each IP to 5 login requests per window
+  message: { error: 'Too many login attempts, please try again after 15 minutes' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const apiLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 100, // Limit each IP to 100 requests per window
+  message: { error: 'Too many requests, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 app.use(requestIdMiddleware);
 app.use(auditMiddleware);
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
+app.use(apiLimiter);
 
 /**
  * Health
@@ -57,7 +131,7 @@ app.get('/ready', async (_req, res) => {
 /**
  * Authentication
  */
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', authLimiter, async (req, res) => {
   try {
     const { username, password } = req.body;
 
@@ -85,7 +159,7 @@ app.patch(
   '/api/admin/users/:userId/role',
   authMiddleware,
   roleMiddleware('SuperAdmin'),
-  async (req, res) => {
+  async (req: AuthenticatedRequest, res) => {
     const targetUserId = req.params.userId;
     const requestedRole = req.body?.role;
 
@@ -253,7 +327,7 @@ app.get(
 app.get(
   '/api/trade/portfolio',
   authMiddleware,
-  async (req, res) => {
+  async (req: AuthenticatedRequest, res) => {
     try {
       if (!req.user) {
         return res.status(401).json({
@@ -279,7 +353,7 @@ app.get(
 app.post(
   '/api/trade/order',
   authMiddleware,
-  async (req, res) => {
+  async (req: AuthenticatedRequest, res) => {
     try {
       if (!req.user) {
         return res.status(401).json({
@@ -287,35 +361,21 @@ app.post(
         });
       }
 
-      const {
-        asset,
-        type,
-        amount,
-        price,
-      } = req.body;
-
-      if (
-        typeof asset !== 'string' ||
-        (type !== 'BUY' && type !== 'SELL') ||
-        typeof amount !== 'string' ||
-        typeof price !== 'string'
-      ) {
-        return res.status(400).json({
-          error:
-            'asset, type, amount and price are required',
-        });
-      }
+      const validatedData = OrderSchema.parse(req.body);
 
       const order = await tradeService.placeOrder(
         req.user.sub,
-        asset,
-        type,
-        amount,
-        price,
+        validatedData.asset,
+        validatedData.type,
+        validatedData.amount,
+        validatedData.price,
       );
 
       return res.status(201).json(order);
     } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid input', details: error.issues });
+      }
       console.error('Order creation failed:', error);
 
       return res.status(400).json({
@@ -349,7 +409,7 @@ app.get(
 app.post(
   '/api/market/purchase',
   authMiddleware,
-  async (req, res) => {
+  async (req: AuthenticatedRequest, res) => {
     try {
       if (!req.user) {
         return res.status(401).json({
@@ -447,8 +507,90 @@ app.get(
 );
 
 /**
+ * Media
+ */
+app.get(
+  '/api/media/feed',
+  authMiddleware,
+  async (_req, res) => {
+    try {
+      const feed = await mediaService.getFeed();
+
+      return res.json(feed);
+    } catch (error) {
+      console.error('Media feed query failed:', error);
+
+      return res.status(500).json({
+        error: 'Failed to retrieve media feed',
+      });
+    }
+  },
+);
+
+app.post(
+  '/api/media/publish',
+  authMiddleware,
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({
+          error: 'Authentication required',
+        });
+      }
+
+      const validatedData = PublishSchema.parse(req.body);
+
+      const content = await mediaService.createContent(
+        req.user.sub,
+        validatedData,
+      );
+
+      return res.status(201).json(content);
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid input', details: error.issues });
+      }
+      console.error('Media publication failed:', error);
+
+      return res.status(400).json({
+        error: error.message ?? 'Publication failed',
+      });
+    }
+  },
+);
+
+app.patch(
+  '/api/media/content/:id/status',
+  authMiddleware,
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const { id } = req.params;
+      const validatedData = StatusSchema.parse(req.body);
+
+      const content = await mediaService.updateStatus(
+        id, 
+        req.user?.sub || '', 
+        validatedData.status
+      );
+
+      return res.json(content);
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid input', details: error.issues });
+      }
+      console.error('Media status update failed:', error);
+
+      return res.status(400).json({
+        error: error.message ?? 'Update failed',
+      });
+    }
+  },
+);
+
+/**
  * General authenticated users
  */
+
 app.get(
   '/api/users',
   authMiddleware,
@@ -476,8 +618,24 @@ app.get(
 );
 
 /**
- * Server
+ * Production Error Handler
  */
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  const isProduction = process.env.NODE_ENV === 'production';
+  
+  console.error(`[ERROR] ${req.method} ${req.url}:`, err);
+
+  res.status(err.status || 500).json({
+    error: {
+      code: err.code || 'INTERNAL_SERVER_ERROR',
+      message: isProduction 
+        ? 'An unexpected error occurred. Please contact support.' 
+        : err.message,
+      requestId: res.locals.requestId,
+    }
+  });
+});
+
 const server = app.listen(port, () => {
   console.log(
     `PASADIUM Core API running at http://localhost:${port}`,

@@ -1,5 +1,5 @@
-import { PageHeader, Card } from "@shared/ui";
-import { Container } from "@shared/ui";
+import { PageHeader, Card } from "@pasadium/ui";
+import { Container } from "@pasadium/ui";
 
 
 const capabilities = [

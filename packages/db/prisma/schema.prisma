@@ -77,8 +77,21 @@ model Product {
 }
 
 // ==========================================
-// SECURITY / ADMIN DOMAIN
+// MEDIA DOMAIN
 // ==========================================
+model MediaContent {
+  id          String   @id @default(uuid())
+  title       String
+  type        String
+  category    String
+  tags        String   // Stored as comma-separated values
+  url         String?
+  status      String   // DRAFT, REVIEW, APPROVED, PUBLISHED
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  authorId    String
+}
+
 model SecurityLog {
   id        String   @id @default(uuid())
   timestamp DateTime @default(now())

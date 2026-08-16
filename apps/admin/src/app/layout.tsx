@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AdminLayout } from "@/components/layout/AdminLayout";
-import { brand } from "@shared/config";
+import { brand } from "@pasadium/config";
 
 export const metadata: Metadata = {
   title: `Admin | ${brand.name}`,

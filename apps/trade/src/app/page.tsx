@@ -1,11 +1,12 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { AppShell, Metric, Button, Card } from "@pasadium/ui";
 import { PortfolioItem } from "@pasadium/api";
-import { TradeLayout } from "@/components/layout/TradeLayout";
-import { PriceTicker } from "@/components/trade/PriceTicker";
-import { PortfolioTable } from "@/components/trade/PortfolioTable";
 import { tradeApi } from "@/lib/api-client";
-import { Button, Card } from "@shared/ui";
+import { PortfolioTable } from "@/components/trade/PortfolioTable";
+
+// Correcting import for the tradeApi
+import { tradeApi as tradeApiClient } from "@/lib/api-client";
 
 export default function TradePage() {
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
@@ -15,7 +16,7 @@ export default function TradePage() {
 
   const loadPortfolio = async () => {
     try {
-      const data = await tradeApi.getPortfolio();
+      const data = await tradeApiClient.getPortfolio();
       setPortfolio(data);
     } catch (e) {
       console.error(e);
@@ -24,7 +25,7 @@ export default function TradePage() {
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     loadPortfolio();
   }, []);
 
@@ -50,56 +51,76 @@ export default function TradePage() {
     }
   };
 
-  if (loading) return <div style={{ padding: '40px', textAlign: 'center' }}>Loading portfolio...</div>;
+  const navigation = [
+    { label: 'Overview', href: '/', active: true },
+    { label: 'Markets', href: '/markets' },
+    { label: 'Portfolio', href: '/portfolio' },
+    { label: 'Orders', href: '/orders' },
+    { label: 'Positions', href: '/positions' },
+    { label: 'Activity', href: '/activity' },
+  ];
+
+  if (loading) return <div style={{ padding: '40px', textAlign: 'center' }}>Loading Cockpit...</div>;
 
   return (
-    <TradeLayout>
+    <AppShell 
+      appName="Trade" 
+      navigation={navigation} 
+      user={{ name: 'trader_1', role: 'Trader' }}
+    >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
         <section>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h2>Market Overview</h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px' }}>
+            <div>
+              <h1 style={{ fontSize: '2rem', fontWeight: 'bold', margin: 0 }}>PORTFOLIO VALUE</h1>
+              <div style={{ fontSize: '3rem', fontWeight: 'bold', color: 'var(--color-text-primary)' }}>$124,502.12</div>
+              <div style={{ color: '#22c55e', fontWeight: 'bold' }}>+4.2% Today</div>
+            </div>
           </div>
-          <PriceTicker />
         </section>
 
-        <section style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '32px' }}>
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h2>Your Portfolio</h2>
-            </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '32px' }}>
+          <section>
+            <h2 style={{ fontSize: '1.2rem', marginBottom: '16px', color: 'var(--color-text-secondary)' }}>CURRENT HOLDINGS</h2>
             <PortfolioTable data={portfolio} />
-          </div>
+          </section>
 
-          <Card>
-            <h3 style={{ marginBottom: '16px' }}>Quick Order</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <label>Asset</label>
-              <select 
-                value={orderAsset} 
-                onChange={(e) => setOrderAsset(e.target.value)}
-                style={{ padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
-              >
-                <option value="BTC">Bitcoin (BTC)</option>
-                <option value="ETH">Ethereum (ETH)</option>
-                <option value="SOL">Solana (SOL)</option>
-              </select>
-              
-              <label>Amount</label>
-              <input 
-                type="text" 
-                value={orderAmount} 
-                onChange={(e) => setOrderAmount(e.target.value)}
-                style={{ padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}
-              />
+          <aside>
+            <Card>
+              <h3 style={{ marginBottom: '20px', fontSize: '1.1rem' }}>EXECUTION PANEL</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>Asset</label>
+                  <select 
+                    value={orderAsset} 
+                    onChange={(e) => setOrderAsset(e.target.value)}
+                    style={{ width: '100%', padding: '12px', borderRadius: '4px', backgroundColor: 'var(--color-bg-main)', color: 'white', border: '1px solid var(--color-border)' }}
+                  >
+                    <option value="BTC">Bitcoin (BTC)</option>
+                    <option value="ETH">Ethereum (ETH)</option>
+                    <option value="SOL">Solana (SOL)</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>Amount</label>
+                  <input 
+                    type="text" 
+                    value={orderAmount} 
+                    onChange={(e) => setOrderAmount(e.target.value)}
+                    style={{ width: '100%', padding: '12px', borderRadius: '4px', backgroundColor: 'var(--color-bg-main)', color: 'white', border: '1px solid var(--color-border)', boxSizing: 'border-box' }}
+                  />
+                </div>
 
-              <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
-                <Button variant="primary" onClick={() => handleOrder('BUY')} style={{ flex: 1 }}>Buy</Button>
-                <Button variant="secondary" onClick={() => handleOrder('SELL')} style={{ flex: 1 }}>Sell</Button>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px' }}>
+                  <Button variant="primary" onClick={() => handleOrder('BUY')} style={{ padding: '16px' }}>BUY</Button>
+                  <Button variant="secondary" onClick={() => handleOrder('SELL')} style={{ padding: '16px' }}>SELL</Button>
+                </div>
               </div>
-            </div>
-          </Card>
-        </section>
+            </Card>
+          </aside>
+        </div>
       </div>
-    </TradeLayout>
+    </AppShell>
   );
 }

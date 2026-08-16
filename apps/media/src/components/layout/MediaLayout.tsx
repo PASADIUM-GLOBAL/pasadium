@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container } from "@shared/ui";
+import { Container } from "@pasadium/ui";
 
 interface MediaLayoutProps {
   children: React.ReactNode;

@@ -79,6 +79,14 @@ export async function writeSecurityLog({
   }
 }
 
+interface AuthenticatedRequest extends Request {
+  user?: {
+    sub: string;
+    username: string;
+    roles: string;
+  };
+}
+
 export async function auditPrivilegedMutation({
   req,
   res,
@@ -90,7 +98,7 @@ export async function auditPrivilegedMutation({
   before,
   after,
 }: {
-  req: Request;
+  req: AuthenticatedRequest;
   res: Response;
   action: string;
   resource: string;

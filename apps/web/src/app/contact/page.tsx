@@ -1,5 +1,5 @@
-import { PageHeader } from "@shared/ui";
-import { Container } from "@shared/ui";
+import { PageHeader } from "@pasadium/ui";
+import { Container } from "@pasadium/ui";
 
 
 export default function ContactPage() {

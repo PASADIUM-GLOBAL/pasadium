@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { brand } from "@shared/config";
-import { Container } from "@shared/ui";
+import { brand } from "@pasadium/config";
+import { Container } from "@pasadium/ui";
 
 export const metadata: Metadata = {
   title: {

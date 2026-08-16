@@ -1,4 +1,4 @@
-import { apiClient } from "../shared/utils/api-client";
+import { apiClient } from "@pasadium/utils";
 
 export const marketApi = {
   getProducts: async () => {
@@ -6,5 +6,8 @@ export const marketApi = {
   },
   addToCart: async (productId: string) => {
     return apiClient.post('/market/cart', { productId });
+  },
+  purchaseProduct: async (productId: string) => {
+    return apiClient.post('/market/purchase', { productId });
   },
 };

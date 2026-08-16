@@ -1,4 +1,4 @@
-import { apiClient } from "../shared/utils/api-client";
+import { apiClient } from "@pasadium/utils";
 import { PortfolioItem } from "@pasadium/api";
 
 export const tradeApi = {

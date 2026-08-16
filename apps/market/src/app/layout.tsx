@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { brand } from "@shared/config";
+import { brand } from "@pasadium/config";
 
 export const metadata: Metadata = {
   title: `Market | ${brand.name}`,

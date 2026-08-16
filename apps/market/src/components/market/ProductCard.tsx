@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Button } from "@shared/ui";
+import { Card, Button } from "@pasadium/ui";
 import { Product } from "@pasadium/api";
 
 interface ProductCardProps {

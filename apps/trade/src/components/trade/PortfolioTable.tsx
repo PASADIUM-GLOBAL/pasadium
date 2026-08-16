@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import { Card } from "@shared/ui";
+import { Card } from "@pasadium/ui";
 import { PortfolioItem } from "@pasadium/api";
 import { mockTradeApi } from "@/lib/mock-api";
 

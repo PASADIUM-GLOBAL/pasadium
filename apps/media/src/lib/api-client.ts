@@ -1,4 +1,4 @@
-import { apiClient } from "../shared/utils/api-client";
+import { apiClient } from "@pasadium/utils";
 
 export const mediaApi = {
   getFeed: async () => {

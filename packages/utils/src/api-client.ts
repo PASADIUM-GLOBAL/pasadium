@@ -1,6 +1,6 @@
 export const API_CONFIG = {
   apiBaseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api',
-  authBaseUrl: process.env.NEXT_PUBLIC_AUTH_URL || 'http://localhost:3000',
+  authBaseUrl: process.env.NEXT_PUBLIC_AUTH_URL || 'http://localhost:3001',
 };
 
 export class ApiClient {
@@ -29,7 +29,11 @@ export class ApiClient {
   }
 
   async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const url = `${API_CONFIG.apiBaseUrl}${endpoint}`;
+    const baseUrl = API_CONFIG.apiBaseUrl.endsWith('/') 
+      ? API_CONFIG.apiBaseUrl.slice(0, -1) 
+      : API_CONFIG.apiBaseUrl;
+    
+    const url = `${baseUrl}${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`;
     const headers = new Headers(options.headers);
     
     const token = this.getToken();

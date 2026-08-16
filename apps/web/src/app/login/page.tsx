@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from 'react';
-import { Container, Button, Card } from "@shared/ui";
-import { apiClient, API_CONFIG } from "@shared/utils";
+import { Container, Button, Card } from "@pasadium/ui";
+import { apiClient, API_CONFIG } from "@pasadium/utils";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);

@@ -7,7 +7,7 @@ import { verifyPKCE } from './lib/pkce';
 import { userStore } from './lib/user-store';
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3001;
 
 function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET;
