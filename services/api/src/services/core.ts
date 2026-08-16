@@ -53,7 +53,7 @@ export const tradeService = {
       },
     });
 
-    return assets.map((asset) => ({
+    return assets.map((asset: any) => ({
       asset: asset.ticker,
       price: '64,000.00',
       change: '+1.2%',
@@ -72,7 +72,7 @@ export const tradeService = {
       },
     });
 
-    return portfolios.map((portfolio) => ({
+    return portfolios.map((portfolio: any) => ({
       id: portfolio.id,
       asset: portfolio.asset.ticker,
       amount: portfolio.amount,
@@ -126,7 +126,7 @@ export const tradeService = {
   try {
     console.log('AUDIT: entering transaction');
     
-    const result = await db.$transaction(async (tx) => {
+    const result = await db.$transaction(async (tx: typeof db) => {
       const portfolio = await tx.portfolio.findFirst({
         where: {
           userId,
@@ -163,7 +163,7 @@ export const tradeService = {
       });
 
       const positionValue = newAmount.mul(executionPrice);
- 
+  
       if (portfolio) {
         await tx.portfolio.update({
           where: {
