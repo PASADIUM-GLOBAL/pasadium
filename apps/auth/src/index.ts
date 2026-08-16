@@ -8,7 +8,16 @@ import { userStore } from './lib/user-store';
 
 const app = express();
 const port = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'pasadium-super-secret-key';
+
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+
+  if (!secret) {
+    throw new Error('JWT_SECRET is not configured');
+  }
+
+  return secret;
+}
 
 app.use(cors());
 app.use(cookieParser());
@@ -16,11 +25,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // In-memory store for auth codes
-const authCodes = new Map<string, { 
-  userId: string, 
-  challenge: string, 
-  method: string, 
-  expiresAt: number 
+const authCodes = new Map<string, {
+  userId: string,
+  challenge: string,
+  method: string,
+  expiresAt: number
 }>();
 
 /**
@@ -78,7 +87,7 @@ app.post('/login', async (req, res) => {
  */
 app.get('/authorize', async (req, res) => {
   const { client_id, response_type, redirect_uri, code_challenge, code_challenge_method, state } = req.query;
-  
+
   const userId = req.cookies?.pasadium_user;
   if (!userId) {
     return res.redirect('/login');
@@ -126,12 +135,12 @@ app.post('/token', async (req, res) => {
   if (!user) return res.status(500).json({ error: 'server_error' });
 
   const token = jwt.sign(
-    { 
-      sub: user.id, 
-      username: user.username, 
-      roles: user.roles 
-    }, 
-    JWT_SECRET, 
+    {
+      sub: user.id,
+      username: user.username,
+      roles: user.roles
+    },
+    getJwtSecret(),
     { expiresIn: '1h' }
   );
 
@@ -157,10 +166,10 @@ app.get('/userinfo', async (req, res) => {
 
   const token = authHeader.split(' ')[1];
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as any;
+    const decoded = jwt.verify(token, getJwtSecret()) as any;
     const user = await userStore.findById(decoded.sub);
     if (!user) return res.status(404).json({ error: 'user_not_found' });
-    
+
     res.json({
       sub: user.id,
       username: user.username,
