@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-bg-main: #050505;
+  --color-bg-surface: #0a0a0a;
+  --color-accent-cyan: #00d9ff;
+  --color-accent-violet: #8b5cf6;
+}
+
+body {
+  background-color: var(--color-bg-main);
+  color: white;
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+}
+
+/* BrandOS Glassmorphism */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}

@@ -1,0 +1,9 @@
+* @pasadium-maintainer
+
+/apps/admin/ @pasadium-maintainer
+/apps/trade/ @pasadium-maintainer
+/apps/media/ @pasadium-maintainer
+/apps/market/ @pasadium-maintainer
+
+/packages/auth/ @pasadium-maintainer
+/packages/api/ @pasadium-maintainer

@@ -1,0 +1,61 @@
+@import "@pasadium/ui/globals.css";
+
+:root {
+  /* PASADIUM Brand System Tokens */
+  --color-bg-main: #050505;
+  --color-bg-surface: #0B0D10;
+  --color-bg-elevated: #11151A;
+  
+  --color-text-primary: #F5F7FA;
+  --color-text-secondary: #8B95A5;
+  --color-text-muted: #5C6470;
+  
+  --color-accent-cyan: #00FFFF;
+  --color-accent-blue: #0070f3;
+  --color-accent-violet: #8B5CF6;
+  
+  --color-border: #1F242C;
+}
+
+body {
+  background-color: var(--color-bg-main);
+  color: var(--color-text-primary);
+  font-family: 'Inter', system-ui, sans-serif;
+  margin: 0;
+}
+
+.site-header {
+  background-color: var(--color-bg-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.section-heading {
+  max-width: 700px;
+  margin-bottom: 48px;
+}
+
+.platform-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.platform-card {
+  min-height: 220px;
+  padding: 32px;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-bg-surface);
+}
+
+.site-footer {
+  border-top: 1px solid var(--color-border);
+  margin-top: 80px;
+  padding: 64px 0 24px;
+  background-color: var(--color-bg-main);
+}
+
+@media (max-width: 768px) {
+  .platform-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      "@pasadium/ui": [
+        "../../packages/ui/src/index"
+      ],
+      "@pasadium/config": [
+        "../../packages/config/src/index"
+      ],
+      "@pasadium/api": [
+        "../../packages/api/src/index"
+      ],
+      "@pasadium/auth": [
+        "../../packages/auth/src/index"
+      ],
+      "@pasadium/utils": [
+        "../../packages/utils/src/index"
+      ]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

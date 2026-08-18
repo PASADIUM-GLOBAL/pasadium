@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==========================================
+// IDENTITY DOMAIN
+// ==========================================
+model User {
+  id           String      @id @default(uuid())
+  username     String      @unique
+  passwordHash String
+  email        String      @unique
+  roles        String // Stored as comma-separated values
+  createdAt    DateTime    @default(now())
+  portfolios   Portfolio[]
+  orders       Order[]
+  sessions     Session[]
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+// ==========================================
+// ECONOMY / TRADE DOMAIN
+// ==========================================
+model Asset {
+  id         String      @id @default(uuid())
+  ticker     String      @unique
+  name       String
+  portfolios Portfolio[]
+  orders     Order[]
+}
+
+model Portfolio {
+  id      String  @id @default(uuid())
+  userId  String
+  assetId String
+  amount  String
+  value   String
+  pnl     String
+  up      Boolean
+  user    User    @relation(fields: [userId], references: [id])
+  asset   Asset   @relation(fields: [assetId], references: [id])
+}
+
+model Order {
+  id        String   @id @default(uuid())
+  userId    String
+  assetId   String
+  type      String // BUY or SELL
+  amount    String
+  price     String
+  status    String // PENDING, COMPLETED, CANCELLED
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  asset     Asset    @relation(fields: [assetId], references: [id])
+}
+
+// ==========================================
+// MARKETPLACE DOMAIN
+// ==========================================
+model Product {
+  id          String @id @default(uuid())
+  name        String @unique
+  price       Int
+  description String
+}
+
+// ==========================================
+// SECURITY / ADMIN DOMAIN
+// ==========================================
+model SecurityLog {
+  id        String   @id @default(uuid())
+  timestamp DateTime @default(now())
+  event     String
+  userId    String?
+  severity  String
+  status    String
+  requestId String?
+  ipAddress String?
+  userAgent String?
+}
+
+model MediaJob {
+  id        String   @id @default(uuid())
+  userId    String
+  prompt    String
+  status    String   @default("QUEUED") // QUEUED, PROCESSING, COMPLETED, FAILED
+  stage     Int      @default(0)        // 0: Script, 1: Voice, 2: Visual, 3: Master
+  progress  Int      @default(0)        // 0-100
+  createdAt DateTime @default(now())
+}
+
+model Transaction {
+  id            String   @id @default(uuid())
+  userId        String
+  assetId       String
+  orderId       String   @unique
+  type          String   // "CREDIT" | "DEBIT"
+  amount        Decimal
+  price         Decimal
+  balanceBefore Decimal
+  balanceAfter  Decimal
+  timestamp     DateTime @default(now())
+}
