@@ -1,10 +1,9 @@
-import { db, Prisma } from "@pasadium/db";
-import { Asset, Portfolio, User, MediaContent } from "@prisma/client";
+import { db } from "@pasadium/db";
 
 export const tradeService = {
   getTickers: async () => {
     const assets = await db.asset.findMany();
-    return assets.map((asset) => ({
+    return assets.map((asset: any) => ({
       asset: asset.ticker,
       price: '64,000.00',
       change: '+1.2%',
@@ -17,7 +16,7 @@ export const tradeService = {
       where: { userId },
       include: { asset: true }
     });
-    return portfolios.map((p) => ({
+    return portfolios.map((p: any) => ({
       asset: p.asset.ticker,
       amount: p.amount,
       value: p.value,
@@ -27,7 +26,7 @@ export const tradeService = {
   },
 
   placeOrder: async (userId: string, assetTicker: string, type: 'BUY' | 'SELL', amount: string, price: string) => {
-    return db.$transaction(async (tx) => {
+    return db.$transaction(async (tx: any) => {
       const asset = await tx.asset.findUnique({ where: { ticker: assetTicker } });
       if (!asset) throw new Error('Asset not found');
 
@@ -155,7 +154,7 @@ export const adminService = {
   },
   getUsers: async () => {
     const users = await db.user.findMany();
-    return users.map((u) => ({
+    return users.map((u: any) => ({
       id: u.id,
       username: u.username,
       role: u.roles.split(',')[0],
