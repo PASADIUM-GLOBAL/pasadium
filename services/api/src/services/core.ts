@@ -1,10 +1,9 @@
-import { db, Prisma } from "@pasadium/db";
-import { Asset, Portfolio, User } from "@prisma/client";
+import { db } from "@pasadium/db";
 
 export const tradeService = {
   getTickers: async () => {
     const assets = await db.asset.findMany();
-    return assets.map((asset: Asset) => ({
+    return assets.map((asset: { ticker: string }) => ({
       asset: asset.ticker,
       price: '64,000.00',
       change: '+1.2%',
@@ -17,7 +16,7 @@ export const tradeService = {
       where: { userId },
       include: { asset: true }
     });
-    return portfolios.map((p: { asset: Asset; amount: string; value: string; pnl: string; up: boolean }) => ({
+    return portfolios.map((p: { asset: { ticker: string }; amount: string; value: string; pnl: string; up: boolean }) => ({
       asset: p.asset.ticker,
       amount: p.amount,
       value: p.value,
@@ -95,7 +94,7 @@ export const adminService = {
   },
   getUsers: async () => {
     const users = await db.user.findMany();
-    return users.map((u: User) => ({
+    return users.map((u: { id: string; username: string; roles: string }) => ({
       id: u.id,
       username: u.username,
       role: u.roles.split(',')[0],
