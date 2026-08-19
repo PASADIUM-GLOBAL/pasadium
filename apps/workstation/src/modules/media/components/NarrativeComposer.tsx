@@ -1,61 +1,42 @@
-import React, { useState } from 'react';
-import { Sparkles, Wand2, FileText } from 'lucide-react';
-import { BrandOS } from '@pasadium/bridge';
+import React from 'react';
+import { Sparkles, Settings2, Wand2 } from 'lucide-react';
+import { BRAND_COLORS } from '@pasadium/config';
 
 export const NarrativeComposer = () => {
-  const [prompt, setPrompt] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const handleGenerate = async () => {
-    if (!prompt) return;
-    
-    setLoading(true);
-    try {
-      // Dispatch to the MediaVerse background pipeline
-      await BrandOS.media.dispatch({
-        prompt,
-        objective: 'Brand Awareness',
-        audience: 'General',
-        tone: 'Technical',
-        platforms: ['YouTube', 'Instagram']
-      });
-      alert(`Job Dispatched: Production pipeline initialized.`);
-    } catch (e) {
-      console.error(e);
-      alert("Failed to initialize pipeline");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
-    <div className="relative z-10 flex flex-col h-full">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
-          <FileText className="text-cyan-400" size={18} />
-          <h3 className="text-sm font-bold tracking-tight uppercase">Narrative_Composer</h3>
-        </div>
-        <span className="text-[9px] font-mono text-cyan-500/50 px-2 py-1 border border-cyan-500/10 rounded">AI_ASSIST_ACTIVE</span>
+    <div className="flex flex-col h-full">
+      <header className="flex justify-between items-start mb-10">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 mb-1" style={{ color: BRAND_COLORS.accent.cyan }}>
+            <Sparkles size={16} />
+            <span className="text-[10px] font-bold tracking-[0.4em] uppercase">Creative_Core</span>
+          </div}
+          <h2 className="text-3xl font-bold tracking-tight text-white">Narrative_Seed</h2>
+        </div}
+        <button className="p-3 rounded-2xl border transition-all text-white/40 hover:text-white" 
+                style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: BRAND_COLORS.border.normal }}>
+          <Settings2 size={16} />
+        </button>
+      </header>
+
+      <div className="flex-1 relative mb-8 group">
+        <textarea
+          placeholder="Input script parameters or creative brief..."
+          className="w-full h-full bg-black/40 border rounded-3xl p-6 text-sm text-slate-300 placeholder:text-white/10 resize-none focus:outline-none transition-all font-sans leading-relaxed shadow-inner"
+          style={{ borderColor: BRAND_COLORS.border.normal }}
+        />
+        <div className="absolute bottom-6 right-6 text-[9px] font-mono text-white/20 uppercase tracking-widest group-focus-within:text-cyan-500/40 transition-colors">
+          Tokens: 1,402 / 8,000
+        </div}
       </div>
 
-      <textarea
-        value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
-        placeholder="Enter script seed or story brief..."
-        className="flex-1 bg-white/5 border border-white/10 rounded-lg p-4 text-sm text-white/80 resize-none focus:border-cyan-500/50 outline-none transition-all font-sans leading-relaxed"
-      />
-
-      <div className="mt-6 space-y-3">
-        <button 
-          onClick={handleGenerate}
-          disabled={loading}
-          className="w-full py-3 bg-cyan-500 text-black rounded-lg font-bold text-xs tracking-widest flex items-center justify-center gap-2 hover:bg-cyan-400 transition-all shadow-[0,0,20px,rgba(6,182,212,0.2)] disabled:opacity-50"
-        >
-          {loading ? <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" /> : <Wand2 size={14} />}
-          {loading ? 'DISPATCHING...' : 'GENERATE_STORYBOARD'}
+      <div className="space-y-4">
+        <button className="w-full py-5 rounded-2xl font-bold text-xs tracking-[0.2em] flex items-center justify-center gap-3 transition-all active:scale-[0.98] shadow-xl" 
+                style={{ backgroundColor: BRAND_COLORS.text.primary, color: BRAND_COLORS.text.inverse }}>
+          <Wand2 size={16} /> GENERATE_STORYBOARD
         </button>
-        <p className="text-[10px] text-white/30 text-center font-mono">
-          Estimated Production Time: 4.2 Minutes
+        <p className="text-[9px] text-white/20 text-center font-mono uppercase tracking-[0.2em]">
+          MediaVerse_v2_Active // Compute_Priority: High
         </p>
       </div>
     </div>

@@ -1,44 +1,42 @@
 import React from 'react';
-import { ShoppingCart, ExternalLink } from 'lucide-react';
-import { InventoryItem } from '@pasadium/bridge/src/contracts/market';
+import { PackageSearch, ArrowUpRight } from 'lucide-react';
+import { BRAND_COLORS } from '@pasadium/config';
 
-interface Props {
-  items: InventoryItem[];
-  onItemClick?: (name: string) => void;
-}
+export const InventoryGrid = () => {
+  const assets = [
+    { name: 'Aurora_Sovereign_License', price: '$299.00', type: 'Digital', stats: 'Lifetime_Auth' },
+    { name: 'Sentinel_Compute_Cluster', price: '$0.04/hr', type: 'Compute', stats: 'Scalable_v2' },
+    { name: 'Nvidia_H100_Node_S1', price: '$14,200.00', type: 'Hardware', stats: 'Sourcing_Active' },
+    { name: 'MediaVerse_Consulting', price: '$850.00', type: 'Service', stats: 'Expert_Assigned' },
+  ];
 
-export const InventoryGrid = ({ items, onItemClick }: Props) => {
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex justify-between items-center">
-        <h3 className="text-sm font-bold tracking-tight uppercase">Corporate_Inventory</h3>
-        <button className="text-[10px] font-mono text-cyan-500 flex items-center gap-1 hover:underline">
-          <ExternalLink size={10} /> SHOPIFY_SYNC_DASHBOARD
+    <div className="flex flex-col h-full">
+      <header className="flex justify-between items-center mb-10">
+        <h3 className="text-[11px] font-bold tracking-[0.4em] text-white/40 uppercase font-mono">Asset_Inventory</h3>
+        <button className="text-[10px] font-mono text-cyan-400 hover:text-white transition-colors flex items-center gap-2 tracking-widest">
+           <PackageSearch size={14}/> GLOBAL_SEARCH
         </button>
-      </div>
+      </header>
 
-      <div className="grid grid-cols-2 gap-4">
-        {items.map((item, i) => (
-          <div 
-            key={i} 
-            onClick={() => onItemClick?.(item.name)}
-            className="group p-4 bg-white/5 border border-white/5 rounded-xl hover:border-cyan-500/30 transition-all cursor-pointer"
-          >
-            <div className="flex justify-between items-start mb-4">
-              <div className={`text-[8px] font-bold px-2 py-0.5 rounded ${
-                item.type === 'DIGITAL' ? 'bg-cyan-500/20 text-cyan-400' : 
-                item.type === 'SERVICE' ? 'bg-violet-500/20 text-violet-400' : 
-                'bg-orange-500/20 text-orange-400'
-              }`}>
-                {item.type}
-              </div>
-              <ShoppingCart size={14} className="text-white/20 group-hover:text-cyan-400 transition-colors" />
-            </div>
-            <h4 className="text-xs font-bold text-white/80 group-hover:text-white mb-1 transition-colors">{item.name}</h4>
-            <div className="flex justify-between items-center">
-              <span className="text-lg font-mono font-bold tracking-tighter">{item.price}</span>
-              <span className="text-[9px] font-mono text-white/30">{item.status}</span>
-            </div>
+      <div className="grid grid-cols-2 gap-6 overflow-y-auto pr-2 custom-scrollbar">
+        {assets.map((asset, i) => (
+          <div key={i} className="group p-6 rounded-3xl transition-all duration-500 cursor-pointer shadow-xl border border-transparent hover:border-cyan-500/40"
+               style={{ backgroundColor: 'rgba(0,0,0,0.4)', borderColor: BRAND_COLORS.border.subtle }}>
+             <div className="flex justify-between items-start mb-6">
+                <div className="px-2.5 py-1 rounded-lg text-[9px] font-bold text-white/40 uppercase tracking-widest border" 
+                     style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: BRAND_COLORS.border.subtle }}>
+                  {asset.type}
+                </div>
+                <div className="p-2 rounded-xl text-white/20 group-hover:text-cyan-400 transition-colors">
+                   <ArrowUpRight size={16} />
+                </div>
+             </div>
+             <h4 className="text-lg font-bold text-white mb-1 tracking-tight group-hover:text-cyan-100 transition-colors">{asset.name}</h4>
+             <div className="flex justify-between items-end">
+                <div className="text-2xl font-mono font-bold text-white tracking-tighter">{asset.price}</div>
+                <div className="text-[9px] font-mono text-white/20 uppercase pb-1 tracking-widest">{asset.stats}</div>
+             </div>
           </div>
         ))}
       </div>

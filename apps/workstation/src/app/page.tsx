@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { WorkstationShell } from '../components/layout/WorkstationShell';
+import { BrandShell } from '@pasadium/ui';
 import { TradeModule } from '../modules/trade/TradeModule';
 import { MediaModule } from '../modules/media/MediaModule';
 import { MarketModule } from '../modules/market/MarketModule';
@@ -28,9 +28,8 @@ export default function WorkstationPage() {
 
   return (
     <BrandOSRuntime>
-      <WorkstationShell 
-        state={state as any} 
-        onModuleChange={handleModuleChange}
+      <BrandShell 
+        initialModule={activeModule.toLowerCase() as any}
       >
         <AnimatePresence mode="wait">
           <motion.div
@@ -48,7 +47,7 @@ export default function WorkstationPage() {
             {activeModule === 'ADMIN' && <AdminMatrix />}
           </motion.div>
         </AnimatePresence>
-      </WorkstationShell>
+      </BrandShell>
     </BrandOSRuntime>
   );
 }

@@ -1,65 +1,73 @@
 import React from 'react';
-import { Calculator, Percent, ShieldCheck } from 'lucide-react';
-import { MarginCalculation } from '@pasadium/bridge/src/contracts/market';
+import { Calculator, ShoppingCart, Gavel, ShieldCheck } from 'lucide-react';
+import { BRAND_COLORS } from '@pasadium/config';
 
-interface Props {
-  calculation: MarginCalculation | null;
-}
-
-export const MarginCalculator = ({ calculation }: Props) => {
-  if (!calculation) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full text-center p-6">
-        <Calculator className="text-white/10 mb-4" size={32} />
-        <p className="text-[10px] font-mono text-white/30 uppercase">Select product to calculate margin</p>
-      </div>
-    );
-  }
-
+export const MarginCalculator = () => {
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center gap-2 mb-6">
-        <Calculator className="text-green-400" size={18} />
-        <h3 className="text-sm font-bold tracking-tight uppercase">Economic_Margin_Engine</h3>
-      </div>
+    <div className="bg-[#0A0C12]/80 border backdrop-blur-3xl rounded-[40px] p-8 h-full flex flex-col shadow-2xl relative overflow-hidden" 
+         style={{ borderColor: BRAND_COLORS.border.subtle }}>
+      <div className="absolute top-0 left-0 w-full h-1 opacity-50" 
+           style={{ backgroundColor: `linear-gradient(to right, transparent, ${BRAND_COLORS.status.success}, transparent)` }} />
+      
+      <header className="mb-8">
+        <div className="flex items-center gap-2 mb-1" style={{ color: BRAND_COLORS.status.success }}>
+          <Calculator size={18} />
+          <span className="text-[10px] font-bold tracking-[0.4em] uppercase">Economic_Logic</span>
+        </div}
+        <h3 className="text-xl font-bold tracking-tight text-white uppercase">Margin_Engine</h3>
+      </header>
 
-      <div className="space-y-6">
-        <div className="p-4 bg-black border border-white/10 rounded-lg space-y-4">
-          <CalculatorRow label="Sourcing_Cost" value={calculation.sourcingCost} />
-          <CalculatorRow label="Import_Tariffs" value={calculation.tariffs} />
-          <CalculatorRow label="Shipping_Freight" value={calculation.shipping} />
-          <div className="h-[1px] bg-white/10 w-full" />
-          <CalculatorRow label="Target_Profit" value={calculation.targetProfit} color="text-green-400" />
-          <div className="flex justify-between items-center pt-2">
-            <span className="text-xs font-bold text-cyan-400 uppercase tracking-widest">FINAL_LIST_PRICE</span>
-            <span className="text-xl font-mono font-bold">{calculation.finalPrice}</span>
+      <div className="space-y-6 flex-1">
+        <div className="p-6 rounded-3xl space-y-5 shadow-inner border" 
+             style={{ backgroundColor: 'black', borderColor: BRAND_COLORS.border.normal }}>
+          <PricingRow label="Sourcing_Cost" value="$142.20" />
+          <PricingRow label="Import_Tariffs" value="$12.50" />
+          <PricingRow label="Bridge_OS_Fee" value="$4.00" />
+          <div className="h-[1px] w-full" style={{ backgroundColor: BRAND_COLORS.border.subtle }} />
+          <PricingRow label="Target_Margin" value="35%" color={BRAND_COLORS.status.success} />
+          
+          <div className="pt-4 flex justify-between items-center">
+             <div className="space-y-1">
+                <span className="text-[9px] font-mono text-white/20 uppercase tracking-widest">Recommended_List</span>
+                <div className="text-3xl font-mono font-bold text-white tracking-tighter">$238.54</div>
+             </div>
+             <button className="p-4 rounded-2xl transition-all shadow-lg" 
+                     style={{ backgroundColor: BRAND_COLORS.text.primary, color: BRAND_COLORS.text.inverse }}>
+                <ShoppingCart size={20} />
+             </button>
           </div>
         </div>
 
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 text-[9px] text-white/30 uppercase font-mono tracking-widest">
-            <Percent size={12} /> Auto_Pricing_Rules
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <span className="px-2 py-1 bg-white/5 border border-white/10 rounded text-[9px] font-mono text-white/50">SMART_MARKUP_ON</span>
-            <span className="px-2 py-1 bg-white/5 border border-white/10 rounded text-[9px] font-mono text-white/50">CURRENCY_HEDGE: ACTIVE</span>
-          </div>
+        <div className="space-y-4 px-2">
+           <div className="flex items-center gap-2 text-[9px] font-mono text-white/30 uppercase tracking-[0.3em]">
+             <Gavel size={12} /> Sovereignty_Overrides
+           </div>
+           <div className="flex flex-wrap gap-2">
+              <span className="px-3 py-1.5 rounded-xl text-[10px] font-mono text-white/60 border" 
+                    style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: BRAND_COLORS.border.subtle }}>
+                DYNAMIC_MARKUP: ON
+              </span>
+              <span className="px-3 py-1.5 rounded-xl text-[10px] font-mono text-white/60 border" 
+                    style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: BRAND_COLORS.border.subtle }}>
+                FX_HEDGE: ACTIVE
+              </span>
+           </div>
         </div>
       </div>
 
-      <div className="mt-auto p-4 bg-cyan-500/5 border border-cyan-500/20 rounded-lg flex items-center gap-3">
-        <ShieldCheck className="text-cyan-400 shrink-0" size={18} />
-        <p className="text-[10px] text-cyan-400/80 font-mono leading-tight">
-          List prices are synchronized with Bridge.OS exchange rates every 60 seconds.
-        </p>
+      <div className="mt-auto pt-6 border-t flex items-start gap-3" style={{ borderColor: BRAND_COLORS.border.subtle }}>
+         <ShieldCheck className="text-cyan-500 shrink-0" size={16} />
+         <p className="text-[10px] text-white/30 font-light leading-relaxed">
+           Financial algorithms are being processed by <span className="text-white/60">AELORA_DECISION_ENGINE</span>. Prices updated every 60s.
+         </p>
       </div>
     </div>
   );
 };
 
-const CalculatorRow = ({ label, value, color = "text-white/60" }: any) => (
-  <div className="flex justify-between items-center text-[10px] font-mono">
-    <span className="text-white/30 uppercase tracking-tighter">{label}</span>
-    <span className={color}>{value}</span>
+const PricingRow = ({ label, value, color = "rgba(255,255,255,0.6)" }: any) => (
+  <div className="flex justify-between items-center font-mono">
+    <span className="text-[10px] text-white/20 uppercase tracking-tighter">{label}</span>
+    <span className="text-xs font-bold" style={{ color }}>{value}</span>
   </div>
 );
