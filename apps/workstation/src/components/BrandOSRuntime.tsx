@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { initializeBrandOS } from '@pasadium/bridge';
-import { useAuthority } from './hooks/useAuthority';
+import { useAuthority } from '../hooks/useAuthority';
 
 export const BrandOSRuntime = ({ children }: { children: React.ReactNode }) => {
   const token = useAuthority((state) => state.token);

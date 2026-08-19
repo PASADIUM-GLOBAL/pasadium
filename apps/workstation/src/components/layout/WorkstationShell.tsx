@@ -25,23 +25,30 @@ export const WorkstationShell = ({ children, state, onModuleChange }: Props) => 
   const [posture, setPosture] = useState<string>('LOCKED');
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let timer: number | undefined;
 
     const pollHealth = async () => {
       try {
-        const res = await BrandOS.security.getIntegrity();
-        setUhi(res.data.uhi);
-        setPosture(res.data.posture);
+        const res = await BrandOS.security.getSystemIntegrity();
+
+        setUhi(res.healthIndex.toFixed(2));
+        setPosture(res.posture);
       } catch (e) {
-        console.error("SHELL_UHI_SYNC_FAILED", e);
+        console.error('SHELL_UHI_SYNC_FAILED', e);
       }
+
       timer = window.setTimeout(pollHealth, 10000);
     };
 
     pollHealth();
-    return () => window.clearTimeout(timer);
-  }, []);
 
+    return () => {
+      if (timer !== undefined) {
+        window.clearTimeout(timer);
+      }
+    };
+
+  }, []);
   return (
     <div className="h-screen w-full bg-[#000000] text-[#E0E0E0] flex overflow-hidden font-sans selection:bg-cyan-500/30">
       

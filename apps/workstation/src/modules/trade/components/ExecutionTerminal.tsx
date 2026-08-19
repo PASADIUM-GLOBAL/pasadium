@@ -1,7 +1,8 @@
-import { createSovereignClient } from '@pasadium/bridge';
+import { BrandOS } from '@pasadium/bridge';
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuthority } from '../../../hooks/useAuthority';
+import { createSovereignClient } from '@pasadium/bridge';
 
 export const ExecutionTerminal = () => {
   const { token } = useAuthority();
@@ -13,11 +14,21 @@ export const ExecutionTerminal = () => {
     setStatus('EXECUTING');
     
     try {
-      const bridge = createSovereignClient(token);
-      await bridge.trade.execute({
-        ticker: 'BTC/USD',
-        amount: 0.1,
-        side: 'BUY'
+      const bridge = createSovereignClient(token,
+        process.env.NEXT_PUBLIC_API_URL ?? '',
+      );
+      await bridge.trade.executeOrder({
+        request: {
+          instrument: 'BTC/USD',
+          side: 'BUY',
+          orderType: 'MARKET',
+          quantity: '0.1',
+        },
+
+        humanConfirmation: {
+          statement: confirmText,
+          confirmed: confirmText === 'EXECUTE ORDER',
+        },
       });
       setStatus('SUCCESS');
       setTimeout(() => { setStatus('IDLE'); setConfirmText(''); }, 2000);
@@ -35,15 +46,15 @@ export const ExecutionTerminal = () => {
         <div className="flex justify-between items-center text-xs font-mono">
           <span className="text-white/40">Asset:</span>
           <span className="text-white">BTC/USD</span>
-        </div}
+        </div>
         <div className="flex justify-between items-center text-xs font-mono">
           <span className="text-white/40">Amount:</span>
           <span className="text-white">0.1000</span>
-        </div}
+        </div>
         <div className="flex justify-between items-center text-xs font-mono">
           <span className="text-white/40">Slippage:</span>
           <span className="text-white">0.05%</span>
-        </div}
+        </div>
       </div>
 
       <div className="space-y-2 mb-6">

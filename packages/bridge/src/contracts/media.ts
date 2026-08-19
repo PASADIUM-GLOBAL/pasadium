@@ -36,6 +36,15 @@ export interface ProductionAsset {
   progress: number;
 }
 
+export interface ProductionStatus {
+  overallProgress: number;
+  stages: {
+    label: string;
+    status: ProductionAsset['status'];
+    progress: number;
+  }[];
+}
+
 export interface DistributionTarget {
   platform: string;
   status: 'READY' | 'SCHEDULED' | 'PUBLISHED' | 'FAILED' | 'AUTO_DISPATCH';
@@ -43,7 +52,14 @@ export interface DistributionTarget {
 
 export interface MediaCapability {
   createProject(request: NarrativeRequest): Promise<MediaProject>;
-  generateNarrative(projectId: string): Promise<NarrativeResult>;
+
+  generateNarrative(
+    projectId: string
+  ): Promise<NarrativeResult>;
+  getProductionStatus(projectId: string): Promise<ProductionStatus>;
+   
+  getDistributionTargets(): Promise<DistributionTarget[]>;
+
   getProductionStatus(projectId: string): Promise<{
     overallProgress: number;
     stages: {
@@ -52,7 +68,18 @@ export interface MediaCapability {
       progress: number;
     }[];
   }>;
-  getAssets(projectId: string): Promise<ProductionAsset[]>;
-  configureDistribution(projectId: string, targets: DistributionTarget[]): Promise<{ success: boolean }>;
-  publish(projectId: string): Promise<{ status: string; publishDate: string }>;
+
+  getAssets(
+    projectId: string
+  ): Promise<ProductionAsset[]>;
+
+  configureDistribution(
+    projectId: string,
+    targets: DistributionTarget[]
+  ): Promise<{ success: boolean }>;
+
+  publish(projectId: string): Promise<{
+    status: string;
+    publishDate: string;
+  }>;
 }

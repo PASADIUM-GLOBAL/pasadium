@@ -1,29 +1,45 @@
+
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Layers } from 'lucide-react';
 import { BrandOS } from '@pasadium/bridge';
+import type { ProductionAsset } from '@pasadium/bridge';
+
+export interface MediaJob {
+  id: string;
+  status: ProductionAsset['status'];
+  progress: number;
+  type?: ProductionAsset['type'];
+  projectId?: string;
+}
 
 export const AssetFabricator = () => {
   const [job, setJob] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let timer: number | undefined;
 
     const syncJob = async () => {
       try {
         const res = await BrandOS.media.getLatestJob();
-        setJob(res.data);
+        setJob(res);
       } catch (e) {
-        console.error("MEDIA_JOB_SYNC_FAILED", e);
+        console.error('MEDIA_JOB_SYNC_FAILED', e);
       } finally {
         setLoading(false);
       }
+
       timer = window.setTimeout(syncJob, 2000);
     };
 
     syncJob();
-    return () => window.clearTimeout(timer);
+
+    return () => {
+      if (timer !== undefined) {
+        window.clearTimeout(timer);
+      }
+    };
   }, []);
 
   const stages = [

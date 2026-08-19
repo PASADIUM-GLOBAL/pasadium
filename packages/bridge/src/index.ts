@@ -1,39 +1,84 @@
-import { BrandOSClient, BrandOSClientConfig } from './client';
+import {
+  BrandOSClient,
+  type BrandOSClientConfig,
+} from './client';
 
 let client: BrandOSClient | null = null;
 
+export type {
+  MediaProject,
+  NarrativeRequest,
+  NarrativeResult,
+  StoryboardScene,
+  ProductionAsset,
+  DistributionTarget,
+} from './contracts/media';
+
+export type {
+  MarketData,
+  MarketIntelligence,
+  OrderRequest,
+  OrderIntent,
+  OrderPreview,
+  OrderResult,
+} from './contracts/trade';
+
+export type {
+  SecurityState,
+  AuditLog,
+} from './contracts/security';
+
 export const initializeBrandOS = (
-  config: BrandOSClientConfig
-) => {
+  config: BrandOSClientConfig,
+): BrandOSClient => {
   client = new BrandOSClient(config);
+  return client;
 };
 
-const requireClient = () => {
+export const createSovereignClient = (
+  token: string,
+  baseUrl = '',
+): BrandOSClient => {
+  return new BrandOSClient({
+    baseUrl,
+    getToken: () => token,
+  });
+};
+
+const requireClient = (): BrandOSClient => {
   if (!client) {
     throw new Error('BRANDOS_NOT_INITIALIZED');
   }
+
   return client;
 };
 
 export const BrandOS = {
-  trade: {
-    getMarketState: () =>
-      requireClient().getTradeTickers(),
-    getOrderBook: (instrument: string) =>
-      requireClient().getOrderBook(instrument),
-    execute: (params: { ticker: string; amount: number; side: 'BUY' | 'SELL' }) =>
-      requireClient().executeOrder(params),
+  get security() {
+    return requireClient().security;
   },
 
-  security: {
-    getIntegrity: () =>
-      requireClient().getSecurityIntegrity(),
+  get intelligence() {
+    return requireClient().intelligence;
   },
 
-  media: {
-    dispatch: (payload: unknown) =>
-      requireClient().dispatchMedia(payload),
-    getLatestJob: () =>
-      requireClient().getLatestJob(),
+  get commerce() {
+    return requireClient().commerce;
+  },
+
+  get trade() {
+    return requireClient().trade;
+  },
+
+  get market() {
+    return requireClient().market;
+  },
+
+  get media() {
+    return requireClient().media;
   },
 };
+
+export { BrandOSClient };
+export type { BrandOSClientConfig };
+export * from './contracts';

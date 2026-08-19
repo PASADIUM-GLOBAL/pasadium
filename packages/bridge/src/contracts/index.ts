@@ -1,5 +1,3 @@
-export type SecurityPosture = 'SECURE' | 'ADAPTIVE' | 'ELEVATED' | 'RESTRICTED';
-
 export interface TrendAnalysisRequest {
   topic: string;
   depth: 'SURFACE' | 'DEEP' | 'CORE';
@@ -26,7 +24,14 @@ export interface SwapResult {
 import { TradeCapability } from './trade';
 import { MediaCapability } from './media';
 import { MarketCapability } from './market';
-import { SecurityCapability, SecurityState } from './security';
+import { SecurityCapability } from './security';
+
+export type {
+  SecurityPosture,
+  SecurityState,
+  AuditLog,
+  SecurityCapability,
+} from './security';
 
 export interface BrandOSRuntime {
   security: SecurityCapability;
@@ -41,4 +46,3 @@ export interface BrandOSRuntime {
   market: MarketCapability;
 }
 
-export type { SecurityState };

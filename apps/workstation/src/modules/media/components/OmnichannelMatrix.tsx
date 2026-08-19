@@ -1,7 +1,48 @@
 import React, { useEffect, useState } from 'react';
-import { Youtube, Instagram, Facebook, MessageSquare, Globe } from 'lucide-react';
+import {
+  Play,
+  Camera,
+  Users,
+  MessageSquare,
+  Globe,
+} from 'lucide-react';
 import { BrandOS } from '@pasadium/bridge';
 import { DistributionTarget } from '@pasadium/bridge/src/contracts/media';
+
+export function SocialLinks() {
+  const links = [
+    {
+      name: "YouTube",
+      href: "#",
+      icon: Play,
+    },
+    {
+      name: "Instagram",
+      href: "#",
+      icon: Camera,
+    },
+    {
+      name: "Facebook",
+      href: "#",
+      icon: Users,
+    },
+  ];
+
+  return (
+    <div className="flex items-center gap-4">
+      {links.map(({ name, href, icon: Icon }) => (
+        <a
+          key={name}
+          href={href}
+          aria-label={name}
+          className="transition-opacity hover:opacity-70"
+        >
+          <Icon size={22} strokeWidth={1.8} />
+        </a>
+      ))}
+    </div>
+  );
+}
 
 export const OmnichannelMatrix = () => {
   const [targets, setTargets] = useState<DistributionTarget[]>([]);
@@ -62,9 +103,9 @@ export const OmnichannelMatrix = () => {
 };
 
 const getIcon = (platform: string) => {
-  if (platform.includes('YouTube')) return <Youtube size={16} />;
-  if (platform.includes('Instagram')) return <Instagram size={16} />;
-  if (platform.includes('Meta')) return <Facebook size={16} />;
+  if (platform.includes('YouTube')) return <Play size={16} />;
+  if (platform.includes('Instagram')) return <Camera size={16} />;
+  if (platform.includes('Meta')) return <Users size={16} />;
   return <MessageSquare size={16} />;
 };
 

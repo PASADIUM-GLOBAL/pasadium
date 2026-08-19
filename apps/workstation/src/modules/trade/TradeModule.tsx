@@ -17,7 +17,7 @@ export const TradeModule = () => {
       try {
         const response = await BrandOS.trade.getMarketState();
         if (mounted) {
-          setMarketData(response.data);
+          setMarketData(response);
         }
       } catch (error) {
         console.error('Failed to load market data:', error);
@@ -48,7 +48,7 @@ export const TradeModule = () => {
   return (
     <div className="h-full w-full grid grid-cols-12 gap-5">
       <div className="col-span-8 flex flex-col gap-5">
-        <OrderBook data={marketData} />
+        <OrderBook marketData={marketData} />
         <ExecutionTerminal />
       </div>
       <div className="col-span-4">

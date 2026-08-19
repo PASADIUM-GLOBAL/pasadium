@@ -7,7 +7,7 @@ import {
   SecurityState
 } from '../contracts';
 import { TradeCapability } from '../contracts/trade';
-import { MediaCapability, MediaProject, NarrativeResult, NarrativeRequest } from '../contracts/media';
+import { DistributionTarget, MediaCapability, MediaProject, NarrativeResult, NarrativeRequest } from '../contracts/media';
 import { MarketCapability, SupplyChainNode, InventoryItem, MarginCalculation } from '../contracts/market';
 import { SecurityCapability, AuditLog } from '../contracts/security';
 
@@ -104,6 +104,14 @@ export class SimulationRuntime implements BrandOSRuntime {
           { label: 'Motion_Graphic_Overlay', status: 'QUEUED', progress: 0 },
         ]
       };
+    },
+    getDistributionTargets: async (): Promise<DistributionTarget[]> => {
+      return [
+        { platform: 'YouTube_Shorts', status: 'READY' },
+        { platform: 'Instagram_Reels', status: 'READY' },
+        { platform: 'Meta_Stories', status: 'READY' },
+        { platform: 'Discord_Oracle', status: 'AUTO_DISPATCH' },
+      ];
     },
     getAssets: async (projectId: string) => {
       return [

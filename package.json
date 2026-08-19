@@ -17,6 +17,7 @@
   },
   "packageManager": "npm@11.5.2",
   "devDependencies": {
+    "autoprefixer": "^10.5.4",
     "turbo": "2.10.10",
     "typescript": "^6.0.3"
   },

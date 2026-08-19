@@ -10,22 +10,28 @@ export const SecurityModule = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let timer: number | undefined;
 
     const syncSecurity = async () => {
       try {
-        const result = await BrandOS.security.getIntegrity();
-        setUhiData(result.data);
+        const result = await BrandOS.security.getSystemIntegrity();
+        setUhiData(result);
       } catch (e) {
-        console.error("SECURITY_SYNC_FAILED", e);
+        console.error('SECURITY_SYNC_FAILED', e);
       } finally {
         setLoading(false);
       }
+
       timer = window.setTimeout(syncSecurity, 5000);
     };
 
     syncSecurity();
-    return () => window.clearTimeout(timer);
+
+    return () => {
+      if (timer !== undefined) {
+        window.clearTimeout(timer);
+      }
+    };
   }, []);
 
   if (loading) {
