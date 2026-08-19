@@ -1,5 +1,5 @@
 import { db, Prisma } from "@pasadium/db";
-import { Asset, Portfolio, User } from "@prisma/client";
+import type { Asset, Portfolio, User } from "@prisma/client";
 
 export const tradeService = {
   getTickers: async () => {
