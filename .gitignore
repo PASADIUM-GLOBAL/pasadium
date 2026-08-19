@@ -34,3 +34,5 @@ Thumbs.db
 # OAuth / credentials
 apps/vcaas_omega/client_secret.json
 **/client_secret.json
+
+*.tsbuildinfo
