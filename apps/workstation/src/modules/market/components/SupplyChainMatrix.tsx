@@ -9,7 +9,7 @@ export const SupplyChainMatrix = () => {
         <div className="flex items-center gap-2 mb-1" style={{ color: BRAND_COLORS.accent.blue }}>
           <Globe size={16} />
           <span className="text-[10px] font-bold tracking-[0.4em] uppercase">Sourcing_Core</span>
-        </div}
+        </div>
         <h2 className="text-2xl font-bold tracking-tight text-white uppercase">Supply_Chain</h2>
       </header>
 

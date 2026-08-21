@@ -10,9 +10,9 @@ export const NarrativeComposer = () => {
           <div className="flex items-center gap-2 mb-1" style={{ color: BRAND_COLORS.accent.cyan }}>
             <Sparkles size={16} />
             <span className="text-[10px] font-bold tracking-[0.4em] uppercase">Creative_Core</span>
-          </div}
+          </div>
           <h2 className="text-3xl font-bold tracking-tight text-white">Narrative_Seed</h2>
-        </div}
+        </div>
         <button className="p-3 rounded-2xl border transition-all text-white/40 hover:text-white" 
                 style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: BRAND_COLORS.border.normal }}>
           <Settings2 size={16} />
@@ -27,7 +27,7 @@ export const NarrativeComposer = () => {
         />
         <div className="absolute bottom-6 right-6 text-[9px] font-mono text-white/20 uppercase tracking-widest group-focus-within:text-cyan-500/40 transition-colors">
           Tokens: 1,402 / 8,000
-        </div}
+        </div>
       </div>
 
       <div className="space-y-4">

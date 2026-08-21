@@ -47,11 +47,11 @@ export const ExecutionTerminal = () => {
         {/* Risk Preview */}
         <div className="p-5 bg-white/[0.02] border border-white/5 rounded-2xl space-y-2">
            <div className="flex justify-between text-[10px] font-mono text-white/30">
-             <span uppercase>ESTIMATED_VALUE</span>
+             <span className="uppercase">ESTIMATED_VALUE</span>
              <span className="text-white/60">${estimatedValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
            </div>
            <div className="flex justify-between text-[10px] font-mono text-white/30">
-             <span uppercase>MARGIN_REQUIRED</span>
+             <span className="uppercase">MARGIN_REQUIRED</span>
              <span className="text-white/60">${(estimatedValue * 0.02).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
            </div>
            <div className="pt-2 border-t border-white/5 flex justify-between items-center">
