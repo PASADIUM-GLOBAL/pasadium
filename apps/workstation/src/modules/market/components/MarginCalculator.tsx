@@ -13,7 +13,7 @@ export const MarginCalculator = () => {
         <div className="flex items-center gap-2 mb-1" style={{ color: BRAND_COLORS.status.success }}>
           <Calculator size={18} />
           <span className="text-[10px] font-bold tracking-[0.4em] uppercase">Economic_Logic</span>
-        </div}
+        </div>
         <h3 className="text-xl font-bold tracking-tight text-white uppercase">Margin_Engine</h3>
       </header>
 

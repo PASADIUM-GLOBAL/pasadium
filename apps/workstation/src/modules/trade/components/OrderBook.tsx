@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRealtime } from '../../../context/RealtimeContext';
-import { BRAND_COLORS, OrderBookLevel } from '@pasadium/config';
+import { BRAND_COLORS } from "@pasadium/config";
+import type { OrderBookLevel } from "../../../context/MarketContext";
 
 export const OrderBook = () => {
   const { subscribe, status } = useRealtime();

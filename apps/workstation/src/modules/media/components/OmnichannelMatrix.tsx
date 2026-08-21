@@ -1,5 +1,5 @@
 import React from 'react';
-import { Youtube, Instagram, Twitter, MessageSquare, Globe2 } from 'lucide-react';
+import { Play, Camera, Radio, MessageSquare, Globe2 } from 'lucide-react';
 import { BRAND_COLORS } from '@pasadium/config';
 
 export const OmnichannelMatrix = () => {
@@ -11,9 +11,9 @@ export const OmnichannelMatrix = () => {
       </div>
 
       <div className="space-y-4">
-        <PlatformItem icon={<Youtube size={16} />} name="YouTube_Main" status="READY" color="#EF4444" />
-        <PlatformItem icon={<Instagram size={16} />} name="IG_Corporate" status="LOCKED" color="#EC4899" />
-        <PlatformItem icon={<Twitter size={16} />} name="X_Sentinel" status="READY" color="#94A3B8" />
+        <PlatformItem icon={<Play size={16} />} name="YouTube_Main" status="READY" color="#EF4444" />
+        <PlatformItem icon={<Camera size={16} />} name="IG_Corporate" status="LOCKED" color="#EC4899" />
+        <PlatformItem icon={<Radio size={16} />} name="X_Sentinel" status="READY" color="#94A3B8" />
         <PlatformItem icon={<MessageSquare size={16} />} name="Discord_Auth" status="AUTO" color="#6366F1" />
       </div>
 

@@ -1,14 +1,36 @@
-import React from 'react';
+import type { ReactNode } from "react";
 import { PasadiumLogo } from '../brand/PasadiumLogo';
 
-interface AppShellProps {
-  children: React.ReactNode;
-  appName: string;
-  navigation: { label: string, href: string, active?: boolean }[];
-  user?: { name: string, role: string };
+
+export interface NavigationItem<T extends string = string> {
+  id: T;
+  label: string;
+  icon?: ReactNode;
 }
 
-export function AppShell({ children, appName, navigation, user }: AppShellProps) {
+export interface AppShellUser {
+  name: string;
+  role: string;
+}
+
+export interface AppShellProps <T extends string = string> {
+  children: ReactNode;
+  appName?: string;
+  navigation: NavigationItem<T>[];
+  user?: AppShellUser;
+  activeModule?: T;
+  onModuleChange?: (id: T) => void;
+}
+
+
+export function AppShell<T extends string = string>({
+  children,
+  activeModule,
+  onModuleChange,
+  appName = "PASADIUM",
+  navigation,
+  user,
+}: AppShellProps<T>) {
   return (
     <div style={{ 
       display: 'flex', 
@@ -31,32 +53,61 @@ export function AppShell({ children, appName, navigation, user }: AppShellProps)
           <PasadiumLogo size="small" />
         </div>
         
-        <nav style={{ padding: '20px 0', flex: 1 }}>
-          {navigation.map(item => (
-            <a 
-              key={item.href} 
-              href={item.href} 
-              style={{ 
-                display: 'block',
-                padding: '12px 24px', 
-                textDecoration: 'none', 
-                color: item.active ? 'var(--color-accent-blue)' : 'var(--color-text-secondary)', 
-                backgroundColor: item.active ? 'var(--color-bg-elevated)' : 'transparent',
-                fontWeight: item.active ? 'bold' : 'normal',
-                fontSize: '0.9rem',
-                borderLeft: item.active ? '4px solid var(--color-accent-blue)' : '4px solid transparent',
-                transition: 'all 0.2s'
-              }}
-            >
-              {item.label}
-            </a>
-          ))}
+        <nav style={{ padding: "20px 0", flex: 1 }}>
+          {navigation.map((item) => {
+            const active = item.id === activeModule;
+
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => onModuleChange?.(item.id)}
+                aria-current={active ? "page" : undefined}
+                style={{
+                  display: "block",
+                  width: "100%",
+                  padding: "12px 24px",
+                  textAlign: "left",
+                  color: active
+                    ? "var(--color-accent-blue)"
+                    : "var(--color-text-secondary)",
+                  backgroundColor: active
+                    ? "var(--color-bg-elevated)"
+                    : "transparent",
+                  fontWeight: active ? "bold" : "normal",
+                  fontSize: "0.9rem",
+                  border: "none",
+                  borderLeft: active
+                    ? "4px solid var(--color-accent-blue)"
+                    : "4px solid transparent",
+                  cursor: "pointer",
+                  transition: "all 0.2s",
+                }}
+              >
+                {item.icon && (
+                  <span style={{ marginRight: "10px" }}>{item.icon}</span>
+                )}
+                {item.label}
+              </button>
+             );
+          })}
         </nav>
         
         {user && (
-          <div style={{ padding: '20px', borderTop: '1px solid var(--color-border)', fontSize: '0.8rem' }}>
-            <div style={{ fontWeight: 'bold' }}>{user.name}</div>
-            <div style={{ color: 'var(--color-text-secondary)' }}>{user.role}</div>
+          <div
+            style={{
+              padding: "20px",
+              borderTop: "1px solid var(--color-border)",
+              fontSize: "0.8rem",
+            }}
+          >
+            <div style={{ fontWeight: "bold" }}>{user.name}</div>
+
+            {user.role && (
+              <div style={{ color: "var(--color-text-secondary)" }}>
+                {user.role}
+              </div>
+            )}
           </div>
         )}
       </aside>
