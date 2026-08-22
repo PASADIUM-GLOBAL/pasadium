@@ -1,306 +1,85 @@
 import type {
-  BrandOSRuntime,
-  TrendAnalysisRequest,
-  TrendAnalysisResult,
-  SwapRequest,
-  SwapResult,
-} from './contracts';
-
-import type {
-  OrderRequest,
-  OrderIntent,
   MarketData,
   MarketIntelligence,
+  OrderRequest,
+  OrderIntent,
   OrderPreview,
   OrderResult,
 } from './contracts/trade';
-
+import type { MarginBreakdown, LogisticsStatus } from './contracts/market';
+import type { MediaJob, DistributionNetwork } from './contracts/media';
 import type {
-  SecurityState,
-  AuditLog,
-} from './contracts/security';
+  AdminLog,
+  AdminSnapshot,
+  AdminStats,
+  AdminVerification,
+  AdminWorker,
+} from './contracts/admin';
 
-import type {
-  SupplyChainNode,
-  InventoryItem,
-  MarginCalculation,
-} from './contracts/market';
+export type TokenProvider = () => string | null | undefined;
 
-import type {
-  MediaProject,
-  NarrativeRequest,
-  NarrativeResult,
-  ProductionAsset,
-  ProductionStatus,
-  DistributionTarget,
-} from './contracts/media';
+const createConductiveFetch = (baseUrl: string, getToken: TokenProvider) => {
+  return async <T>(path: string, options: RequestInit = {}): Promise<T> => {
+    const token = getToken();
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      ...(options.headers as Record<string, string>),
+    };
 
-export interface BrandOSClientConfig {
-  baseUrl: string;
-  getToken: () => string | null;
-}
+    const response = await fetch(`${baseUrl}${path}`, { ...options, headers });
+    if (!response.ok) throw new Error(`SVRN_HTTP_${response.status}`);
+    const result = await response.json();
+    return result.data !== undefined ? result.data : result;
+  };
+};
 
+export const createBrandOSClient = (baseUrl: string, getToken: TokenProvider) => {
+  const request = createConductiveFetch(baseUrl, getToken);
 
-export class BrandOSClient implements BrandOSRuntime {
-  constructor(private readonly config: BrandOSClientConfig) {}
-
-  private async request<T>(
-    path: string,
-    options: RequestInit = {},
-  ): Promise<T> {
-    const token = this.config.getToken();
-
-    if (!token) {
-      throw new Error('AUTHORITY_REQUIRED');
+  return {
+    auth: {
+      login: (body: any) => request<any>('/v1/auth/login', { method: 'POST', body: JSON.stringify(body) }),
+      me: () => request<any>('/v1/auth/me'),
+    },
+    trade: {
+      getTickers: () => request<any[]>('/v1/trade/tickers'),
+      getIntelligence: (instrument: string) => 
+        request<MarketIntelligence>(`/v1/trade/intelligence?instrument=${encodeURIComponent(instrument)}`),
+      getOrderBook: (instrument: string) => 
+        request<MarketData>(`/v1/trade/orderbook?instrument=${encodeURIComponent(instrument)}`),
+      execute: (order: OrderIntent) => request<OrderResult>('/v1/trade/execute', { method: 'POST', body: JSON.stringify(order) }),
+    },
+    media: {
+      dispatch: (prompt: string) => 
+        request<MediaJob>('/v1/media/dispatch', { method: 'POST', body: JSON.stringify({ prompt }) }),
+      getJobStatus: (id: string) => request<MediaJob>(`/v1/media/jobs/${id}`),
+      getDistribution: () => 
+        request<DistributionNetwork>('/v1/media/distribution'),
+    },
+    market: {
+      getInventory: () => request<any[]>('/v1/market/inventory'),
+      calculateMargin: (productId: string) => 
+        request<MarginBreakdown>('/v1/market/margin', { method: 'POST', body: JSON.stringify({ productId }) }),
+      getLogistics: () => 
+        request<LogisticsStatus>('/v1/market/logistics'),
+      purchase: (id: string) => request<any>('/v1/market/purchase', { method: 'POST', body: JSON.stringify({ id }) }),
+    },
+    security: {
+      getIntegrity: () => request<any>('/v1/security/integrity'),
+      getPosture: () => request<any>('/v1/security/posture'),
+      requestMaintenance: (action: string) => 
+        request<any>('/v1/security/maintenance', { method: 'POST', body: JSON.stringify({ action }) }),
+    },
+    admin: {
+      getSnapshot: () => request<AdminSnapshot>('/v1/admin/snapshot'),
+      getStats: () => request<AdminStats>('/v1/admin/stats'),
+      getWorkers: () => request<AdminWorker[]>('/v1/admin/workers'),
+      getLogs: () => request<AdminLog[]>('/v1/admin/logs'),
+      getVerification: () => request<AdminVerification | null>('/v1/admin/verification'),
     }
-
-    const response = await fetch(
-      `${this.config.baseUrl}${path}`,
-      {
-        ...options,
-        headers: {
-          'Content-Type': 'application/json',
-          ...(options.headers || {}),
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    );
-
-    if (!response.ok) {
-      const body = await response.json().catch(() => ({}));
-
-      throw new Error(
-        body.error ||
-          `BRANDOS_REQUEST_FAILED_${response.status}`,
-      );
-    }
-
-    return response.json() as Promise<T>;
-  }
-
-  // ─────────────────────────────────────────────
-  // SECURITY
-  // ─────────────────────────────────────────────
-
-  security = {
-    getPosture: () =>
-      this.request<SecurityState>(
-        '/v1/security/posture',
-      ),
-
-    getSystemIntegrity: () =>
-      this.request<SecurityState>(
-        '/v1/security/integrity',
-      ),
-
-    getAuditLogs: () =>
-      this.request<AuditLog[]>(
-        '/v1/security/audit',
-      ),
-
-    requestMaintenance: (action: string) =>
-      this.request<{ success: boolean }>(
-        '/v1/security/maintenance',
-        {
-          method: 'POST',
-          body: JSON.stringify({ action }),
-        },
-      ),
   };
+};
 
-  // ─────────────────────────────────────────────
-  // INTELLIGENCE
-  // ─────────────────────────────────────────────
-
-  intelligence: BrandOSRuntime['intelligence'] = {
-    analyzeTrend: async (
-      request: TrendAnalysisRequest
-    ): Promise<TrendAnalysisResult> => {
-      return this.request<TrendAnalysisResult>(
-        '/intelligence/analyze',
-        {
-          method: 'POST',
-          body: JSON.stringify(request),
-        }
-      );
-    },
-  };
-
-  // ─────────────────────────────────────────────
-  // COMMERCE
-  // ─────────────────────────────────────────────
-
-  commerce: BrandOSRuntime['commerce'] = {
-    initiateSwap: async (
-      request: SwapRequest
-    ): Promise<SwapResult> => {
-      return this.request<SwapResult>(
-        '/commerce/swap',
-        {
-          method: 'POST',
-          body: JSON.stringify(request),
-        }
-      );
-    },
-  };
-
-  // ─────────────────────────────────────────────
-  // TRADE
-  // ─────────────────────────────────────────────
-
-  trade = {
-    getOrderBook: (instrument: string) =>
-      this.request<MarketData>(
-        `/v1/trade/orderbook/${encodeURIComponent(instrument)}`,
-      ),
-
-    getMarketState: () =>
-      this.request<MarketData[]>(
-        '/v1/trade/tickers',
-      ),
-
-    getIntelligence: (instrument: string) =>
-      this.request<MarketIntelligence>(
-        `/v1/trade/intelligence/${encodeURIComponent(instrument)}`,
-      ),
-
-    previewOrder: (request: OrderRequest) =>
-      this.request<OrderPreview>(
-        '/v1/trade/preview',
-        {
-          method: 'POST',
-          body: JSON.stringify(request),
-        },
-      ),
-
-    executeOrder: (intent: OrderIntent) =>
-      this.request<OrderResult>(
-        '/v1/trade/execute',
-        {
-          method: 'POST',
-          body: JSON.stringify(intent),
-        },
-      ),
-
-    // Legacy compatibility
-    execute: (params: {
-      ticker: string;
-      amount: number;
-      side: 'BUY' | 'SELL';
-    }) =>
-      this.request<OrderResult>(
-        '/v1/trade/execute',
-        {
-          method: 'POST',
-          body: JSON.stringify(params),
-        },
-      ),
-  };
-
-  // ─────────────────────────────────────────────
-  // MARKET
-  // ─────────────────────────────────────────────
-
-  market = {
-    getSupplyChainStatus: () =>
-      this.request<SupplyChainNode[]>(
-        '/v1/market/supply-chain',
-      ),
-
-    getInventory: () =>
-      this.request<InventoryItem[]>(
-        '/v1/market/inventory',
-      ),
-
-    calculateMargin: (productId: string) =>
-      this.request<MarginCalculation>(
-        `/v1/market/margin/${encodeURIComponent(productId)}`,
-      ),
-
-    synchronizeStorefront: (
-      provider: 'SHOPIFY' | 'WOOCOMMERCE',
-    ) =>
-      this.request<{ success: boolean }>(
-        '/v1/market/storefront/synchronize',
-        {
-          method: 'POST',
-          body: JSON.stringify({ provider }),
-        },
-      ),
-  };
-
-  // ─────────────────────────────────────────────
-  // MEDIA
-  // ─────────────────────────────────────────────
-
-  media = {
-    createProject: (request: NarrativeRequest) =>
-      this.request<MediaProject>(
-        '/v1/media/project',
-        {
-          method: 'POST',
-          body: JSON.stringify(request),
-        },
-      ),
-
-    generateNarrative: (projectId: string) =>
-      this.request<NarrativeResult>(
-        `/v1/media/project/${encodeURIComponent(projectId)}/narrative`,
-        {
-          method: 'POST',
-        },
-      ),
-
-    getProductionStatus: async (
-      projectId: string
-    ): Promise<ProductionStatus> => {
-      return this.request<ProductionStatus>(
-        `/media/projects/${projectId}/status`
-      );
-    },
-
-    getDistributionTargets: async (): Promise<DistributionTarget[]> => {
-      return this.request<DistributionTarget[]>(
-        '/media/distribution-targets'
-      );
-    },
-
-    getAssets: (projectId: string) =>
-      this.request<ProductionAsset[]>(
-        `/v1/media/project/${encodeURIComponent(projectId)}/assets`,
-      ),
-
-    configureDistribution: (
-      projectId: string,
-      targets: DistributionTarget[],
-    ) =>
-      this.request<{ success: boolean }>(
-        `/v1/media/project/${encodeURIComponent(projectId)}/distribution`,
-        {
-          method: 'POST',
-          body: JSON.stringify({ targets }),
-        },
-      ),
-
-    publish: (projectId: string) =>
-      this.request<{ status: string; publishDate: string }>(
-        `/v1/media/project/${encodeURIComponent(projectId)}/publish`,
-        {
-          method: 'POST',
-        },
-      ),
-
-    // Legacy compatibility
-    dispatch: (payload: unknown) =>
-      this.request(
-        '/v1/media/dispatch',
-        {
-          method: 'POST',
-          body: JSON.stringify(payload),
-        },
-      ),
-
-    getLatestJob: () =>
-      this.request('/v1/media/job'),
-  };
-}
+export type BrandOSClient = ReturnType<typeof createBrandOSClient>;

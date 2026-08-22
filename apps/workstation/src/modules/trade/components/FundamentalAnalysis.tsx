@@ -1,8 +1,29 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrainCircuit, Info, Target } from 'lucide-react';
 import { BRAND_COLORS } from '@pasadium/config';
+import { useTrade } from '../hooks/useTrade';
 
 export const FundamentalAnalysis = () => {
+  const { getIntelligence } = useTrade();
+  const [intel, setIntel] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchIntel = async () => {
+      try {
+        const data = await getIntelligence('BTC/USD');
+        setIntel(data);
+      } catch (e) {
+        console.error("Intel fetch failed", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchIntel();
+  }, [getIntelligence]);
+
+  if (loading) return <div className="h-full w-full flex items-center justify-center text-white/20 font-mono text-xs">SYNCING_INTELLIGENCE...</div>;
+
   return (
     <div className="relative z-10 flex flex-col h-full">
       <header className="flex justify-between items-start mb-10">
@@ -20,8 +41,8 @@ export const FundamentalAnalysis = () => {
 
       <div className="grid grid-cols-2 gap-10">
         <div className="space-y-8">
-          <MetricBlock label="Global_Sentiment" value="OPTIMISTIC" status="82%" sub="+14.2% Variance" />
-          <MetricBlock label="Capital_Concentration" value="HEAVY" status="BULL" sub="Whale_Cluster_Detected" />
+          <MetricBlock label="Global_Sentiment" value={intel?.sentiment || '---'} status={intel?.confidence || '0%'} sub={intel?.observation || 'Analyzing...'} />
+          <MetricBlock label="Capital_Concentration" value={intel?.institutionalFlow || '---'} status="BULL" sub="Whale_Cluster_Detected" />
         </div>
 
         <div className="bg-black/20 rounded-[32px] border border-white/5 p-6 flex flex-col justify-between">
@@ -30,7 +51,7 @@ export const FundamentalAnalysis = () => {
                <Target size={12}/> Executive_Summary
              </div>
              <p className="text-sm text-white/50 font-light leading-relaxed">
-               "System detects a liquidity gap at <span className="text-white">$64,500</span>. Buy-side pressure from Institutional Nodes (Group_A) remains high. Narrative confirmation of rate cuts is driving divergence."
+               {intel?.observation || "No intelligence available for current instrument."}
              </p>
           </div>
           <div className="pt-6 border-t border-white/5 flex justify-between items-center">

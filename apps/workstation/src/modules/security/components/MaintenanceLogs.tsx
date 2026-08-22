@@ -1,41 +1,26 @@
 import React from 'react';
-import { History, CheckCircle2 } from 'lucide-react';
+import { useSecurity } from '../hooks/useSecurity';
 
-export const MaintenanceLogs = ({ events }: { events: any[] }) => {
+export const MaintenanceLogs = () => {
+  const { integrity } = useSecurity();
+
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center gap-2 mb-6">
-        <History className="text-white/40" size={16} />
-        <h3 className="text-xs font-bold tracking-tight uppercase opacity-60">SVRN_WAL_LOGS</h3>
-      </div>
-
-      <div className="flex-1 space-y-4 overflow-y-auto custom-scrollbar pr-2">
-        {events && events.length > 0 ? (
-          events.map((event, i) => (
-            <div key={event.id || i} className={`border-l-2 pl-4 py-1 ${
-              event.status === 'Blocked' ? 'border-red-500' : 'border-cyan-500'
-            }`}>
-              <div className="flex justify-between items-start mb-1">
-                <span className="text-[9px] font-mono text-white/20">{event.time}</span>
-                <CheckCircle2 size={10} className={event.status === 'Blocked' ? 'text-red-500/50' : 'text-green-500/50'} />
+      <h3 className="text-[11px] font-bold tracking-[0.4em] text-white/40 uppercase mb-8">Maintenance_Audits</h3>
+      <div className="flex-1 space-y-4 overflow-y-auto custom-scrollbar">
+        {integrity?.recentLogs && integrity.recentLogs.length > 0 ? (
+          integrity.recentLogs.map((log: any) => (
+            <div key={log.id} className="border-l border-white/10 pl-4 py-1 hover:border-cyan-500 transition-colors">
+              <div className="flex justify-between text-[9px] font-mono text-white/20">
+                <span>{log.time}</span>
+                <span className="text-cyan-400/50">{log.status}</span>
               </div>
-              <div className="text-[10px] font-mono text-white/70 uppercase tracking-tighter">
-                {event.type}
-              </div>
-              <span className={`text-[8px] font-bold uppercase tracking-widest ${
-                event.status === 'Blocked' ? 'text-red-400' : 'text-cyan-400'
-              }`}>{event.status}</span>
+              <div className="text-[10px] font-mono text-white/70 uppercase truncate">{log.type}</div>
             </div>
           ))
         ) : (
           <div className="text-center py-10 text-[10px] font-mono text-white/20 uppercase">No_Events_Recorded</div>
         )}
-      </div>
-
-      <div className="mt-4 pt-4 border-t border-white/5 text-center">
-        <button className="text-[9px] font-mono text-white/30 hover:text-white uppercase tracking-widest transition-colors">
-          Download_Full_Audit_Report
-        </button>
       </div>
     </div>
   );

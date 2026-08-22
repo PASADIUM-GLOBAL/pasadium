@@ -25,6 +25,11 @@ import { TradeCapability } from './trade';
 import { MediaCapability } from './media';
 import { MarketCapability } from './market';
 import { SecurityCapability } from './security';
+export * from './admin';
+export * from './market';
+export * from './media';
+export * from './security';
+export * from './trade';
 
 export type {
   SecurityPosture,

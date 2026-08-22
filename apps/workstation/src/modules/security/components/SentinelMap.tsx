@@ -18,13 +18,11 @@ export const SentinelMap = () => {
         </span>
       </div>
 
-      {/* The Visual Facade of SECVERSE Defense */}
       <div className="flex-1 bg-black/40 border border-white/5 rounded-xl relative overflow-hidden flex items-center justify-center">
         <div className="absolute inset-0 opacity-20">
           <div className="w-full h-full" style={{ backgroundImage: 'radial-gradient(circle, #6B35FF 1px, transparent 1px)', backgroundSize: '30px 30px' }} />
         </div>
         
-        {/* Animated Sentinel Cells */}
         <div className="relative w-64 h-64">
            {Array.from({length: 12}).map((_, i) => (
              <motion.div
@@ -58,7 +56,7 @@ export const SentinelMap = () => {
 
         <div className="absolute bottom-4 left-4">
            <div className="text-[10px] font-mono text-white/40 uppercase tracking-tighter">
-             Threat_Detection_Sensitivity: <span className="text-cyan-400">High</span>
+             Nodes_Resolved: <span className="text-cyan-400">{integrity?.metrics?.standardAnomalies || 0}</span>
            </div>
         </div>
       </div>

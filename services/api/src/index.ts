@@ -9,10 +9,12 @@ import { auditMiddleware } from './middleware/audit';
 import { auditPrivilegedMutation } from './services/security-log';
 import { updateUserRole } from './services/admin';
 import {
-  tradeService,
   marketService,
   adminService,
 } from './services/core';
+import { tradeService } from './domains/trade/trade.service';
+import { securityService } from './domains/security/security.service';
+import { mediaService } from './domains/media/media.service';
 
 const app = express();
 const port = Number(process.env.PORT ?? 4000);
@@ -57,32 +59,57 @@ app.get('/ready', async (_req, res) => {
 /**
  * Authentication
  */
-app.post('/api/auth/login', async (req, res) => {
-  try {
-    const { username, password } = req.body;
+app.post(
+  '/v1/auth/login',
+  async (req, res) => {
+    try {
+      const { username, password } = req.body;
 
-    if (
-      typeof username !== 'string' ||
-      typeof password !== 'string'
-    ) {
-      return res.status(400).json({
-        error: 'username and password are required',
+      if (
+        typeof username !== 'string' ||
+        typeof password !== 'string'
+      ) {
+        return res.status(400).json({
+          error: 'username and password are required',
+        });
+      }
+
+      const result = await login(username, password);
+
+      return res.status(200).json({ data: result });
+    } catch (error) {
+      console.error('Login failed:', error);
+
+      return res.status(401).json({
+        error: 'Invalid credentials',
       });
     }
+  },
+);
 
-    const result = await login(username, password);
-
-    return res.status(200).json(result);
-  } catch (error) {
-    console.error('Login failed:', error);
-
-    return res.status(401).json({
-      error: 'Invalid credentials',
-    });
+app.get(
+  '/v1/auth/me',
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const user = await db.user.findUnique({
+        where: { id: req.user?.sub },
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          roles: true,
+        },
+      });
+      return res.json({ data: user });
+    } catch (error) {
+      return res.status(500).json({ error: 'Failed to retrieve user' });
+    }
   }
-});
+);
+
 app.patch(
-  '/api/admin/users/:userId/role',
+  '/v1/admin/users/:userId/role',
   authMiddleware,
   roleMiddleware('SuperAdmin'),
   async (req, res) => {
@@ -233,13 +260,13 @@ app.patch(
  * Trade
  */
 app.get(
-  '/api/trade/tickers',
+  '/v1/trade/tickers',
   authMiddleware,
   async (_req, res) => {
     try {
       const tickers = await tradeService.getTickers();
 
-      return res.json(tickers);
+      return res.json({ data: tickers });
     } catch (error) {
       console.error('Ticker query failed:', error);
 
@@ -251,7 +278,54 @@ app.get(
 );
 
 app.get(
-  '/api/trade/portfolio',
+  '/v1/trade/intelligence',
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const instrument =
+        typeof req.query.instrument === 'string'
+          ? req.query.instrument
+          : 'BTC/USD';
+
+      const intelligence =
+        await tradeService.getMarketIntelligence(instrument);
+
+      return res.json({ data: intelligence });
+    } catch (error) {
+      console.error('Market intelligence query failed:', error);
+
+      return res.status(500).json({
+        error: 'Failed to retrieve market intelligence',
+      });
+    }
+  },
+);
+
+app.get(
+  '/v1/trade/orderbook',
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const instrument =
+        typeof req.query.instrument === 'string'
+          ? req.query.instrument
+          : 'BTC/USD';
+
+      const data = await tradeService.getOrderBook(instrument);
+
+      return res.json({ data });
+    } catch (error) {
+      console.error('Orderbook query failed:', error);
+
+      return res.status(500).json({
+        error: 'Failed to retrieve order book',
+      });
+    }
+  },
+);
+
+app.get(
+  '/v1/trade/portfolio',
   authMiddleware,
   async (req, res) => {
     try {
@@ -265,7 +339,7 @@ app.get(
         req.user.sub,
       );
 
-      return res.json(portfolio);
+      return res.json({ data: portfolio });
     } catch (error) {
       console.error('Portfolio query failed:', error);
 
@@ -277,7 +351,7 @@ app.get(
 );
 
 app.post(
-  '/api/trade/order',
+  '/v1/trade/execute',
   authMiddleware,
   async (req, res) => {
     try {
@@ -291,32 +365,29 @@ app.post(
         asset,
         type,
         amount,
-        price,
       } = req.body;
 
       if (
         typeof asset !== 'string' ||
         (type !== 'BUY' && type !== 'SELL') ||
-        typeof amount !== 'string' ||
-        typeof price !== 'string'
+        typeof amount !== 'number'
       ) {
         return res.status(400).json({
           error:
-            'asset, type, amount and price are required',
+            'asset, type, and amount (number) are required',
         });
       }
 
-      const order = await tradeService.placeOrder(
+      const order = await tradeService.executeOrder(
         req.user.sub,
         asset,
-        type,
         amount,
-        price,
+        type,
       );
 
-      return res.status(201).json(order);
+      return res.status(201).json({ data: order });
     } catch (error: any) {
-      console.error('Order creation failed:', error);
+      console.error('Order execution failed:', error);
 
       return res.status(400).json({
         error: error.message ?? 'Order failed',
@@ -329,13 +400,13 @@ app.post(
  * Marketplace
  */
 app.get(
-  '/api/market/products',
+  '/v1/market/inventory',
   authMiddleware,
   async (req, res) => {
     try {
       const products = await marketService.getProducts();
 
-      return res.json(products);
+      return res.json({ data: products });
     } catch (error) {
       console.error('Product query failed:', error);
 
@@ -346,8 +417,21 @@ app.get(
   },
 );
 
+app.get(
+  '/v1/market/logistics',
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const data = await marketService.getSupplyChainStatus();
+      return res.json({ data });
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message ?? 'Logistics sync failed' });
+    }
+  },
+);
+
 app.post(
-  '/api/market/purchase',
+  '/v1/market/purchase',
   authMiddleware,
   async (req, res) => {
     try {
@@ -370,7 +454,7 @@ app.post(
         productId,
       );
 
-      return res.status(201).json(result);
+      return res.status(201).json({ data: result });
     } catch (error: any) {
       console.error('Purchase failed:', error);
 
@@ -381,18 +465,128 @@ app.post(
   },
 );
 
+app.post(
+  '/v1/market/margin',
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const { productId } = req.body;
+      if (typeof productId !== 'string') {
+        return res.status(400).json({ error: 'productId is required' });
+      }
+      const data = await marketService.calculateMargin(productId);
+      return res.json({ data });
+    } catch (error: any) {
+      return res.status(400).json({ error: error.message ?? 'Margin calculation failed' });
+    }
+  },
+);
+
+/**
+ * Media
+ */
+app.get(
+  '/v1/media/distribution',
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const data = await mediaService.getDistributionNetwork();
+      return res.json({ data });
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message ?? 'Distribution sync failed' });
+    }
+  },
+);
+
+app.post(
+  '/v1/media/dispatch',
+  authMiddleware,
+  async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+      const { prompt } = req.body;
+      if (typeof prompt !== 'string') {
+        return res.status(400).json({ error: 'prompt is required' });
+      }
+      const result = await mediaService.dispatchMediaJob(req.user.sub, prompt);
+      return res.status(201).json({ data: result });
+    } catch (error: any) {
+      return res.status(400).json({ error: error.message ?? 'Dispatch failed' });
+    }
+  },
+);
+
+app.get(
+  '/v1/media/jobs/:id',
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const job = await mediaService.getJobStatus(id);
+      return res.json({ data: job });
+    } catch (error: any) {
+      return res.status(404).json({ error: 'Job not found' });
+    }
+  },
+);
+
+/**
+ * Security
+ */
+app.get(
+  '/v1/security/integrity',
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const integrity = await securityService.calculateUHI();
+      return res.json({ data: integrity });
+    } catch (error) {
+      return res.status(500).json({ error: 'Failed to retrieve integrity' });
+    }
+  },
+);
+
+app.get(
+  '/v1/security/posture',
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const posture = await securityService.getPosture();
+      return res.json({ data: posture });
+    } catch (error) {
+      return res.status(500).json({ error: 'Failed to retrieve posture' });
+    }
+  },
+);
+
+app.post(
+  '/v1/security/maintenance',
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const { action } = req.body;
+      const result = await securityService.requestMaintenance(action);
+      return res.json({ data: result });
+    } catch (error: any) {
+      return res.status(400).json({ error: error.message ?? 'Maintenance request failed' });
+    }
+  },
+);
+
 /**
  * Admin
  */
 app.get(
-  '/api/admin/health',
+  '/v1/admin/health',
   authMiddleware,
   roleMiddleware('SuperAdmin'),
   async (req, res) => {
     try {
       const health = await adminService.getSystemHealth();
 
-      return res.json(health);
+      return res.json({ data: health });
     } catch (error) {
       console.error('System health query failed:', error);
 
@@ -404,14 +598,33 @@ app.get(
 );
 
 app.get(
-  '/api/admin/users',
+  '/v1/admin/stats',
+  authMiddleware,
+  roleMiddleware('SuperAdmin'),
+  async (req, res) => {
+    try {
+      const stats = await adminService.getStats();
+
+      return res.json({ data: stats });
+    } catch (error) {
+      console.error('Stats query failed:', error);
+
+      return res.status(500).json({
+        error: 'Failed to retrieve stats',
+      });
+    }
+  },
+);
+
+app.get(
+  '/v1/admin/users',
   authMiddleware,
   roleMiddleware('SuperAdmin'),
   async (req, res) => {
     try {
       const users = await adminService.getUsers();
 
-      return res.json(users);
+      return res.json({ data: users });
     } catch (error) {
       console.error('Admin user query failed:', error);
 
@@ -423,7 +636,7 @@ app.get(
 );
 
 app.get(
-  '/api/admin/logs',
+  '/v1/admin/logs',
   authMiddleware,
   roleMiddleware('SuperAdmin'),
   async (req, res) => {
@@ -435,7 +648,7 @@ app.get(
         take: 100,
       });
 
-      return res.json(logs);
+      return res.json({ data: logs });
     } catch (error) {
       console.error('Security log query failed:', error);
 
@@ -450,7 +663,7 @@ app.get(
  * General authenticated users
  */
 app.get(
-  '/api/users',
+  '/v1/users',
   authMiddleware,
   async (_req, res) => {
     try {
@@ -464,7 +677,7 @@ app.get(
         },
       });
 
-      return res.json(users);
+      return res.json({ data: users });
     } catch (error) {
       console.error('User query failed:', error);
 

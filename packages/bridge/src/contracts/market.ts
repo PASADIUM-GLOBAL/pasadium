@@ -11,17 +11,33 @@ export interface InventoryItem {
   status: string;
 }
 
-export interface MarginCalculation {
-  sourcingCost: string;
-  tariffs: string;
-  shipping: string;
-  targetProfit: string;
-  finalPrice: string;
+export interface MarginBreakdown {
+  sourcingCost: number;
+  importTariffs: number;
+  platformFee: number;
+  calculatedMargin: number;
+  finalListPrice: number;
+  markupPercentage: number;
+  isHedged: boolean;
+  isDynamicMarkup: boolean;
+}
+
+export interface LogisticsNode {
+  id: string;
+  label: string;
+  status: 'ACTIVE' | 'TRANSIT' | 'PENDING' | 'ERROR';
+  detail: string;
+  integrity: number;
+}
+
+export interface LogisticsStatus {
+  nodes: LogisticsNode[];
+  globalIntegrity: number;
 }
 
 export interface MarketCapability {
   getSupplyChainStatus(): Promise<SupplyChainNode[]>;
   getInventory(): Promise<InventoryItem[]>;
-  calculateMargin(productId: string): Promise<MarginCalculation>;
+  calculateMargin(productId: string): Promise<MarginBreakdown>;
   synchronizeStorefront(provider: 'SHOPIFY' | 'WOOCOMMERCE'): Promise<{ success: boolean }>;
 }

@@ -1,19 +1,16 @@
 import React, { useState } from 'react';
-import { Atmosphere } from '../components/layout/Atmosphere';
+import { Atmosphere } from './Atmosphere';
 import { Shield, Clock, Cpu, LayoutGrid, Zap, Settings, LogOut, Activity, Globe } from 'lucide-react';
 import { BRAND_COLORS, ConnectionStatus } from '@pasadium/config';
 import { CommandPalette, CommandItem } from '../interaction/CommandPalette';
 import { useCommandPalette } from '../hooks/useCommandPalette';
 import { SystemStatus } from '../components/SystemStatus';
-import { useRealtime } from '../context/RealtimeContext';
-import { useAuth } from '../context/AuthContext';
+// Removed context imports
 import { AnimatePresence } from 'framer-motion';
 
 export type ModuleId = 'home' | 'trade' | 'media' | 'market' | 'security' | 'system';
 
-export const BrandShell = ({ children, initialModule = 'home' }: { children?: React.ReactNode, initialModule?: ModuleId }) => {
-  const { status, latency } = useRealtime();
-  const { user } = useAuth();
+export const BrandShell = ({ children, initialModule = 'home', user, status = 'disconnected', latency = 0 }: { children?: React.ReactNode, initialModule?: ModuleId, user?: any, status?: string, latency?: number }) => {
   const [currentModule, setCurrentModule] = useState<ModuleId>(initialModule);
   const { isOpen, setIsOpen, toggle } = useCommandPalette((id) => {
     if (id.startsWith('nav:')) {

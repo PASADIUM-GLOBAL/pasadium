@@ -1,71 +1,7 @@
-import { db, Prisma } from "@pasadium/db";
+import { db } from "@pasadium/db";
+import Decimal from "decimal.js";
 import type { Asset, Portfolio, User } from "@prisma/client";
-
-export const tradeService = {
-  getTickers: async () => {
-    const assets = await db.asset.findMany();
-    return assets.map((asset: Asset) => ({
-      asset: asset.ticker,
-      price: '64,000.00',
-      change: '+1.2%',
-      up: true,
-    }));
-  },
-
-  getPortfolio: async (userId: string) => {
-    const portfolios = await db.portfolio.findMany({
-      where: { userId },
-      include: { asset: true }
-    });
-    return portfolios.map((p: { asset: Asset; amount: string; value: string; pnl: string; up: boolean }) => ({
-      asset: p.asset.ticker,
-      amount: p.amount,
-      value: p.value,
-      pnl: p.pnl,
-      up: p.up,
-    }));
-  },
-
-  placeOrder: async (userId: string, assetTicker: string, type: 'BUY' | 'SELL', amount: string, price: string) => {
-    const asset = await db.asset.findUnique({ where: { ticker: assetTicker } });
-    if (!asset) throw new Error('Asset not found');
-
-    const order = await db.order.create({
-      data: {
-        userId,
-        assetId: asset.id,
-        type,
-        amount,
-        price,
-        status: 'COMPLETED',
-      },
-    });
-
-    const portfolio = await db.portfolio.findFirst({
-      where: { userId, assetId: asset.id }
-    });
-
-    if (portfolio) {
-      await db.portfolio.update({
-        where: { id: portfolio.id },
-        data: { amount: 'Updated' }
-      });
-    } else if (type === 'BUY') {
-      await db.portfolio.create({
-        data: {
-          userId,
-          assetId: asset.id,
-          amount,
-          value: price,
-          pnl: '0',
-          up: true,
-        },
-      });
-    }
-
-    return order;
-  },
-};
+import type { MarginBreakdown, LogisticsStatus } from "@pasadium/bridge";
 
 export const marketService = {
   getProducts: async () => {
@@ -77,9 +13,70 @@ export const marketService = {
     
     return {
       success: true,
-      orderId: Math.random().toString(36).substring(7),
+      orderId: crypto.randomUUID(),
       product: product.name,
       amount: product.price,
+    };
+  },
+  calculateMargin: async (productId: string): Promise<MarginBreakdown> => {
+    const product = await db.product.findUnique({ where: { id: productId } });
+    if (!product) throw new Error('PRODUCT_NOT_FOUND');
+
+    // PHASE 2: Economic Logic Simulation
+    const sourcingCost = new Decimal(product.price * 0.6); 
+    const tariffRate = new Decimal(0.08); 
+    const platformFee = new Decimal(150.00);
+    const marginRate = new Decimal(0.35);
+
+    const tariffs = sourcingCost.mul(tariffRate);
+    const subtotal = sourcingCost.add(tariffs).add(platformFee);
+    const marginAmount = subtotal.mul(marginRate);
+    const finalPrice = subtotal.add(marginAmount);
+
+    return {
+      sourcingCost: sourcingCost.toNumber(),
+      importTariffs: tariffs.toNumber(),
+      platformFee: platformFee.toNumber(),
+      calculatedMargin: marginAmount.toNumber(),
+      finalListPrice: Number(finalPrice.toFixed(2)),
+      markupPercentage: 35,
+      isHedged: true,
+      isDynamicMarkup: true
+    };
+  },
+  getSupplyChainStatus: async (): Promise<LogisticsStatus> => {
+    return {
+      globalIntegrity: 0.98,
+      nodes: [
+        { 
+          id: 'node-01', 
+          label: 'Wholesale_Bridge', 
+          status: 'ACTIVE', 
+          detail: 'Alibaba_Cloud_API_v4.2', 
+          integrity: 1.0 
+        },
+        { 
+          id: 'node-02', 
+          label: 'Consumer_Bridge', 
+          status: 'ACTIVE', 
+          detail: 'AliExpress_Drop_Service', 
+          integrity: 0.99 
+        },
+        { 
+          id: 'node-03', 
+          label: 'Freight_Transit', 
+          status: 'TRANSIT', 
+          detail: 'Vessel: MARSK_ALPHA_NODE', 
+          integrity: 0.95 
+        },
+        { 
+          id: 'node-04', 
+          label: 'Last_Mile_Hub', 
+          status: 'PENDING', 
+          detail: 'Regional_Dist_Center_S1', 
+          integrity: 1.0 
+        }
+      ]
     };
   },
 };
@@ -100,5 +97,16 @@ export const adminService = {
       username: u.username,
       role: u.roles.split(',')[0],
     }));
+  },
+  getStats: async () => {
+    const userCount = await db.user.count();
+    const orderCount = await db.order.count();
+    const productCount = await db.product.count();
+    return {
+      totalUsers: userCount,
+      totalOrders: orderCount,
+      totalProducts: productCount,
+      systemLoad: 'Nominal'
+    };
   },
 };

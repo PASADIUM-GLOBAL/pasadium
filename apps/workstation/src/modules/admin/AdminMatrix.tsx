@@ -1,43 +1,65 @@
 import React from 'react';
+import { AuroraPulse } from '@pasadium/ui';
+import { useAdmin } from './hooks/useAdmin';
 import { RawSecverseLogs } from './components/RawSecverseLogs';
 import { WorkerOrchestrator } from './components/WorkerOrchestrator';
 import { SovereignVerification } from './components/SovereignVerification';
-import { AuroraPulse } from '@pasadium/ui';
 
 export const AdminMatrix = () => {
+  const {
+    stats,
+    workers,
+    logs,
+    verification,
+    loading,
+    error,
+    refresh,
+  } = useAdmin();
+
+  if (loading && !stats) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <span className="animate-pulse font-mono text-[10px] text-white/20">
+          SYNCHRONIZING_ROOT_AUTHORITY...
+        </span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-4">
+        <span className="font-mono text-[10px] text-red-400">
+          ADMIN_SYNC_FAILURE
+        </span>
+
+        <button
+          onClick={() => void refresh()}
+          className="text-[9px] font-mono text-cyan-400"
+        >
+          RETRY_CONNECTION
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="h-full w-full grid grid-cols-12 gap-5 relative">
-      {/* Sovereign Visual: Darker, tighter pulse */}
+    <div className="grid h-full grid-cols-12 gap-6 relative">
       <AuroraPulse opacity={0.15} color="#C52CFF" intensity={2} />
 
-      {/* LEFT: Raw Secverse Stream */}
-      <div className="col-span-4 flex flex-col gap-5">
-        <div className="flex-1 bg-black/60 border border-magenta-500/20 rounded-xl p-6 backdrop-blur-xl">
-          <RawSecverseLogs />
-        </div>
-      </div>
+      <section className="col-span-7">
+        <WorkerOrchestrator workers={workers} />
+      </section>
 
-      {/* CENTER: Worker Node Status (MediaVerse/BridgeOS) */}
-      <div className="col-span-5 flex flex-col gap-5">
-        <div className="flex-1 bg-black/40 border border-white/5 rounded-xl p-6">
-          <WorkerOrchestrator />
-        </div>
-        <div className="h-48 bg-cyan-500/5 border border-cyan-500/20 rounded-xl p-4">
-           <h4 className="text-[10px] font-mono text-cyan-500 uppercase mb-4">Kernel_Authority_Context</h4>
-           <div className="text-[10px] font-mono text-white/40 space-y-1">
-             <div>SVRN_ID: 0xPA_SOVEREIGN_MAIN</div>
-             <div>AUTH_LEVEL: LEVEL_10_ROOT</div>
-             <div>ENCRYPTION: ED25519_ACTIVE</div>
-           </div>
-        </div>
-      </div>
+      <section className="col-span-5">
+        <SovereignVerification
+          verification={verification}
+        />
+      </section>
 
-      {/* RIGHT: Sovereign Verification (Market Overrides) */}
-      <div className="col-span-3 flex flex-col gap-5">
-        <div className="flex-1 bg-black/60 border border-yellow-500/20 rounded-xl p-6 backdrop-blur-xl">
-          <SovereignVerification />
-        </div>
-      </div>
+      <section className="col-span-12">
+        <RawSecverseLogs logs={logs} />
+      </section>
     </div>
   );
 };
