@@ -1,5 +1,5 @@
 export const API_CONFIG = {
-  apiBaseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api',
+  apiBaseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000',
   authBaseUrl: process.env.NEXT_PUBLIC_AUTH_URL || 'http://localhost:3001',
 };
 
