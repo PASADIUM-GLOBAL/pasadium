@@ -605,13 +605,13 @@ export const PASADIUM = {
 
   runtime: {
     local: {
-      web: "http://localhost:3000",
-      auth: "http://localhost:3001",
-      api: "http://localhost:4000",
-      admin: "http://localhost:3002",
-      trade: "http://localhost:3003",
-      media: "http://localhost:3004",
-      market: "http://localhost:3005",
+      web: "http://pasadium.tech",
+      auth: "http://auth.pasadium.tech",
+      api: "http://api.pasadium.tech",
+      admin: "http://admin.pasadium.tech",
+      trade: "http://trade.pasadium.tech",
+      media: "http://media.pasadium.tech",
+      market: "http://market.pasadium.tech",
     },
 
     recommendedStartup:
