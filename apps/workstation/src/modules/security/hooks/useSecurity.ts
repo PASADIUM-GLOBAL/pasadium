@@ -1,37 +1,23 @@
 import { useState, useEffect } from 'react';
-import { BrandOS } from '@pasadium/bridge';
-import { SecurityState, AuditLog } from '@pasadium/bridge/src/contracts/security';
+import { useAuth } from '../../../context/AuthContext';
 
-export function useSecurity() {
-  const [integrity, setIntegrity] = useState<SecurityState | null>(null);
-  const [logs, setLogs] = useState<AuditLog[]>([]);
-  const [loading, setLoading] = useState(true);
+export const useSecurity = () => {
+  const { bridge } = useAuth();
+  const [integrity, setIntegrity] = useState<any>(null);
 
-  async function syncSecurityStatus() {
+  const fetchIntegrity = async () => {
     try {
-      const [state, audit] = await Promise.all([
-        BrandOS.security.getSystemIntegrity(),
-        BrandOS.security.getAuditLogs()
-      ]);
-      setIntegrity(state);
-      setLogs(audit);
-    } catch (e) {
-      console.error("Security sync failed", e);
-    } finally {
-      setLoading(false);
+      const data = await bridge.security.getIntegrity();
+      setIntegrity(data);
+      return data;
+    } catch (err) {
+      console.error("INTEGRITY_SYNC_FAILURE:", err);
     }
-  }
-
-  useEffect(() => {
-    syncSecurityStatus();
-    const interval = setInterval(syncSecurityStatus, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  return {
-    integrity,
-    logs,
-    loading,
-    syncSecurityStatus
   };
-}
+
+  const requestMaintenance = async (action: string) => {
+    return await bridge.security.requestMaintenance(action);
+  };
+
+  return { integrity, fetchIntegrity, requestMaintenance };
+};

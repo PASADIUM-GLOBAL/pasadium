@@ -29,7 +29,7 @@ export const WorkstationShell = ({ children, state, onModuleChange }: Props) => 
 
     const pollHealth = async () => {
       try {
-        const res = await BrandOS.security.getSystemIntegrity();
+        const res = await BrandOS.security.getIntegrity();
 
         setUhi(res.healthIndex.toFixed(2));
         setPosture(res.posture);

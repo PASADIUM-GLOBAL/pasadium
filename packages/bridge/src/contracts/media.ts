@@ -1,3 +1,24 @@
+export interface MediaJob {
+  id: string;
+  prompt: string;
+  status: 'QUEUED' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
+  progress: number;
+  createdAt: Date;
+}
+
+export interface DistributionTarget {
+  id: string;
+  platform: 'YOUTUBE' | 'INSTAGRAM' | 'X' | 'DISCORD';
+  label: string;
+  status: 'READY' | 'LOCKED' | 'SYNCING' | 'AUTO';
+  reachProjection: number;
+}
+
+export interface DistributionNetwork {
+  targets: DistributionTarget[];
+  totalReach: number;
+}
+
 export interface MediaProject {
   id: string;
   title: string;
@@ -43,11 +64,6 @@ export interface ProductionStatus {
     status: ProductionAsset['status'];
     progress: number;
   }[];
-}
-
-export interface DistributionTarget {
-  platform: string;
-  status: 'READY' | 'SCHEDULED' | 'PUBLISHED' | 'FAILED' | 'AUTO_DISPATCH';
 }
 
 export interface MediaCapability {

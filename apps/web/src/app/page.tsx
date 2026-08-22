@@ -1,6 +1,6 @@
 import React from 'react';
 import { PublicNav } from '../components/shared/PublicNav';
-import { Hero } from '../components/landing/Hero';
+import { HeroRedesign as Hero } from '../components/landing/HeroRedesign';
 import { EcosystemGrid } from '../components/landing/EcosystemGrid';
 import { Footer } from '../components/shared/Footer';
 import { AuroraPulse } from '@pasadium/ui';

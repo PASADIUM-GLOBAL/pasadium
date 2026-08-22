@@ -7,9 +7,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ==========================================
-// IDENTITY DOMAIN
-// ==========================================
+enum OrderStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum MediaJobStatus {
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
 model User {
   id           String      @id @default(uuid())
   username     String      @unique
@@ -45,25 +56,27 @@ model Portfolio {
   id      String  @id @default(uuid())
   userId  String
   assetId String
-  amount  String
-  value   String
-  pnl     String
+  amount  Decimal @db.Decimal(20, 8)
+  value   Decimal @db.Decimal(20, 2)
+  pnl     Decimal @db.Decimal(20, 2) @default(0)
   up      Boolean
   user    User    @relation(fields: [userId], references: [id])
   asset   Asset   @relation(fields: [assetId], references: [id])
+
+  @@unique([userId, assetId])
 }
 
 model Order {
-  id        String   @id @default(uuid())
+  id        String      @id @default(uuid())
   userId    String
   assetId   String
   type      String // BUY or SELL
-  amount    String
-  price     String
-  status    String // PENDING, COMPLETED, CANCELLED
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id])
-  asset     Asset    @relation(fields: [assetId], references: [id])
+  amount    Decimal    @db.Decimal(20, 8)
+  price     Decimal    @db.Decimal(20, 2)
+  status    OrderStatus @default(PENDING)
+  createdAt DateTime    @default(now())
+  user      User       @relation(fields: [userId], references: [id])
+  asset     Asset      @relation(fields: [assetId], references: [id])
 }
 
 // ==========================================
@@ -92,13 +105,13 @@ model SecurityLog {
 }
 
 model MediaJob {
-  id        String   @id @default(uuid())
+  id        String         @id @default(uuid())
   userId    String
   prompt    String
-  status    String   @default("QUEUED") // QUEUED, PROCESSING, COMPLETED, FAILED
-  stage     Int      @default(0)        // 0: Script, 1: Voice, 2: Visual, 3: Master
-  progress  Int      @default(0)        // 0-100
-  createdAt DateTime @default(now())
+  status    MediaJobStatus @default(QUEUED)
+  stage     Int            @default(0)        // 0: Script, 1: Voice, 2: Visual, 3: Master
+  progress  Int            @default(0)        // 0-100
+  createdAt DateTime       @default(now())
 }
 
 model Transaction {

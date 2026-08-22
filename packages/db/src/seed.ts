@@ -2,44 +2,30 @@ import argon2 from 'argon2';
 import { db } from './index';
 
 async function main() {
+  const isProd = process.env.NODE_ENV === 'production';
+  const rawPassword = process.env.DEV_SEED_PASSWORD;
+
+  // Production Fail-Closed Rule
+  if (isProd && !rawPassword) {
+    throw new Error('CRITICAL_FAILURE: Production seed requires DEV_SEED_PASSWORD');
+  }
+
   console.log('🌱 Seeding PostgreSQL database...');
 
-  const adminPasswordHash = await argon2.hash('AdminPassword123!', {
+  const finalPassword = rawPassword || 'pasadium_default_2026';
+  const passwordHash = await argon2.hash(finalPassword, {
     type: argon2.argon2id,
   });
 
-  const traderPasswordHash = await argon2.hash('TraderPassword123!', {
-    type: argon2.argon2id,
-  });
-
-  // 1. Create Users
-  const admin = await db.user.upsert({
-    where: { username: 'admin' },
-    update: {
-      passwordHash: adminPasswordHash,
-      email: 'admin@pasadium.tech',
-      roles: 'SuperAdmin',
-    },
+  // 1. Create the Sovereign Owner
+  const sovereign = await db.user.upsert({
+    where: { username: 'svrn_owner' },
+    update: { passwordHash },
     create: {
-      username: 'admin',
-      passwordHash: adminPasswordHash,
-      email: 'admin@pasadium.tech',
-      roles: 'SuperAdmin',
-    },
-  });
-
-  const trader = await db.user.upsert({
-    where: { username: 'trader_1' },
-    update: {
-      passwordHash: traderPasswordHash,
-      email: 'trader@pasadium.tech',
-      roles: 'Trader',
-    },
-    create: {
-      username: 'trader_1',
-      passwordHash: traderPasswordHash,
-      email: 'trader@pasadium.tech',
-      roles: 'Trader',
+      username: 'svrn_owner',
+      email: 'sovereign@pasadium.tech',
+      passwordHash,
+      roles: 'SuperAdmin,Trader',
     },
   });
 
@@ -71,31 +57,36 @@ async function main() {
     },
   });
 
-  // 3. Create Portfolios
+  // 3. Create Portfolios for sovereign owner
   await db.portfolio.deleteMany({
-    where: { userId: trader.id },
+    where: { userId: sovereign.id },
   });
 
-  await db.portfolio.createMany({
-    data: [
-      {
-        userId: trader.id,
-        assetId: btc.id,
-        amount: '0.45',
-        value: '28,903.72',
-        pnl: '+1,200',
-        up: true,
+  const portfolios = [
+    {
+      assetId: btc.id,
+      amount: '0.45',
+      value: '28903.72',
+      pnl: '1200',
+      up: true,
+    },
+    {
+      assetId: eth.id,
+      amount: '2.10',
+      value: '7245.25',
+      pnl: '-150',
+      up: false,
+    },
+  ];
+
+  for (const p of portfolios) {
+    await db.portfolio.create({
+      data: {
+        userId: sovereign.id,
+        ...p,
       },
-      {
-        userId: trader.id,
-        assetId: eth.id,
-        amount: '2.10',
-        value: '7,245.25',
-        pnl: '-150',
-        up: false,
-      },
-    ],
-  });
+    });
+  }
 
   // 4. Create Products
   const products = [
@@ -127,7 +118,7 @@ async function main() {
     });
   }
 
-  console.log('✅ Seeding completed successfully');
+  console.log(`SVRN_TRUTH_SYNCED: Target: ${isProd ? 'PRODUCTION' : 'DEVELOPMENT'}`);
 }
 
 main()

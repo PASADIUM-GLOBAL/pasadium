@@ -1,90 +1,118 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { Sparkles, Zap, Globe, Cpu } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
-import { useRealtime } from '../../../context/RealtimeContext';
-import { BRAND_COLORS } from '@pasadium/config';
 
 export const AssetFabricator = () => {
-  const { user } = useAuth();
-  const { subscribe } = useRealtime();
-  const [currentJob, setCurrentJob] = useState<any>(null);
+  const { bridge } = useAuth();
+  const [prompt, setPrompt] = useState('');
+  const [job, setJob] = useState<any>(null);
+  const [status, setStatus] = useState<'IDLE' | 'FABRICATING' | 'COMPLETE' | 'ERROR'>('IDLE');
+  const TERMINAL_STATES = ['COMPLETED', 'FAILED', 'CANCELLED'];
 
   useEffect(() => {
-    if (!user) return;
+    let interval: ReturnType<typeof setInterval> | undefined;
 
-    const unsubscribe = subscribe('MEDIA_JOB_PROGRESS', (data: any) => {
-      if (data.actor.userId === user.id) {
-        setCurrentJob(data.payload);
-      }
-    });
+    if (job?.id && !TERMINAL_STATES.includes(job.status)) {
+      interval = setInterval(async () => {
+        try {
+          const currentStatus = await bridge.media.getJobStatus(job.id);
+          setJob(currentStatus);
+          
+          if (TERMINAL_STATES.includes(currentStatus.status)) {
+            setStatus(currentStatus.status === 'COMPLETED' ? 'COMPLETE' : 'ERROR');
+            clearInterval(interval);
+          }
+        } catch (err) {
+          console.error("POLLING_FAILURE:", err);
+          setStatus('ERROR');
+          clearInterval(interval);
+        }
+      }, 3000);
+    }
 
-    return () => unsubscribe();
-  }, [user, subscribe]);
+    return () => { if (interval) clearInterval(interval); };
+  }, [job?.id, job?.status, bridge]);
 
-  const stages = [
-    { label: "Script_Synthesizer", id: 0 },
-    { label: "Voice_Clone_Generation", id: 1 },
-    { label: "Visual_Remix_Engine", id: 2 },
-    { label: "Motion_Graphic_Overlay", id: 3 }
-  ];
+  const handleFabricate = async () => {
+    if (!prompt) return;
+    setStatus('FABRICATING');
+    try {
+      const result = await bridge.media.dispatch(prompt);
+      setJob(result);
+    } catch (err) {
+      setStatus('ERROR');
+    }
+  };
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex justify-between items-center mb-10">
-        <h3 className="text-[11px] font-bold tracking-[0.4em] text-white/40 uppercase">Production_Forge</h3>
-        {currentJob?.status === 'PROCESSING' && (
-          <span className="text-[9px] font-mono text-cyan-400 animate-pulse uppercase tracking-widest">
-            {currentJob.currentTask}...
-          </span>
-        )}
+    <div className="h-full flex flex-col space-y-6">
+      <div className="bg-black/40 border border-white/5 rounded-3xl p-8 backdrop-blur-xl">
+        <h3 className="text-[11px] font-bold tracking-[0.4em] text-white/40 uppercase mb-6">Narrative_Synthesizer</h3>
+        
+        <div className="relative">
+          <textarea 
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder="Describe the sovereign narrative..."
+            className="w-full h-32 bg-black border border-white/10 rounded-2xl p-6 text-white font-mono text-sm focus:border-cyan-500/50 outline-none transition-all placeholder:text-white/10 resize-none"
+          />
+          <button 
+            onClick={handleFabricate}
+            disabled={status === 'FABRICATING' || !prompt}
+            className="absolute bottom-4 right-4 px-6 py-2 bg-white text-black rounded-xl font-bold text-xs hover:bg-cyan-400 transition-all disabled:opacity-50"
+          >
+            {status === 'FABRICATING' ? 'FABRICATING...' : 'FABRICATE'}
+          </button>
+        </div>
       </div>
 
-      <div className="space-y-10 flex-1">
-        {stages.map((s) => {
-          const isComplete = currentJob?.status === 'COMPLETED' || currentJob?.stage > s.id;
-          const isCurrent = currentJob?.stage === s.id && currentJob?.status !== 'COMPLETED';
+      <div className="flex-1 grid grid-cols-2 gap-6">
+        <div className="bg-black/40 border border-white/5 rounded-3xl p-6 backdrop-blur-xl">
+          <div className="flex items-center gap-3 mb-6">
+            <Zap size={16} className="text-cyan-400" />
+            <h4 className="text-[11px] font-bold tracking-widest text-white/60 uppercase">Processing_Queue</h4>
+          </div>
+          
+          {job ? (
+            <div className="space-y-4">
+              <div className="flex justify-between text-[10px] font-mono">
+                <span className="text-white/40">JOB_ID: {job.jobId}</span>
+                <span className="text-cyan-400">{job.status}</span>
+              </div>
+              <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                <motion.div 
+                  initial={{ width: 0 }}
+                  animate={{ width: `${job.progress}%` }}
+                  className="h-full bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.5)]"
+                />
+              </div>
+              <div className="text-[10px] font-mono text-white/20 text-right">
+                PROGRESS: {job.progress}%
+              </div>
+            </div>
+          ) : (
+            <div className="h-24 flex items-center justify-center text-[10px] font-mono text-white/20 italic">
+              NO_ACTIVE_JOB
+            </div>
+          )}
+        </div>
 
-          return (
-            <PipelineStep 
-              key={s.id}
-              label={s.label}
-              status={isComplete ? 'SYNCED' : isCurrent ? 'PROCESSING' : 'QUEUED'}
-              progress={isComplete ? 100 : isCurrent ? currentJob.progress : 0}
-              color={isComplete ? BRAND_COLORS.status.success : isCurrent ? BRAND_COLORS.accent.cyan : BRAND_COLORS.border.subtle}
-            />
-          );
-        })}
-      </div>
-
-      <div className="mt-8 aspect-video bg-black/60 rounded-[32px] border flex flex-col items-center justify-center relative overflow-hidden group cursor-pointer shadow-2xl"
-           style={{ borderColor: BRAND_COLORS.border.subtle }}>
-         <div className="absolute top-4 left-6 flex items-center gap-2">
-            <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_red]" />
-            <span className="text-[9px] font-mono text-red-500 tracking-widest uppercase">Live_Render_Buffer</span>
-         </div>
-         <span className="text-[11px] font-bold tracking-[0.2em] text-white/30 group-hover:text-cyan-400 transition-colors">INITIALIZE_PREVIEW</span>
-         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <div className="bg-black/40 border border-white/5 rounded-3xl p-6 backdrop-blur-xl">
+          <div className="flex items-center gap-3 mb-6">
+            <Globe size={16} className="text-violet-400" />
+            <h4 className="text-[11px] font-bold tracking-widest text-white/60 uppercase">Distribution_Map</h4>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {['YouTube', 'Instagram', 'Discord', 'X'].map(platform => (
+              <div key={platform} className="p-2 bg-white/5 border border-white/5 rounded-lg text-[9px] font-mono text-white/40 flex justify-between items-center">
+                <span>{platform}</span>
+                <div className="w-1.5 h-1.5 rounded-full bg-white/10" />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
 };
-
-const PipelineStep = ({ label, status, progress, color }: any) => (
-  <div className="space-y-3">
-    <div className="flex justify-between items-center text-[10px] font-mono px-1">
-      <span className="text-white/60 tracking-[0.2em] uppercase">{label}</span>
-      <span className="font-bold" style={{ color: progress > 0 ? color : 'rgba(255,255,255,0.1)' }}>
-        {status}
-      </span>
-    </div>
-    <div className="h-1.5 rounded-full overflow-hidden border" style={{ backgroundColor: 'rgba(255,255,255,0.03)', borderColor: BRAND_COLORS.border.subtle }}>
-      <div 
-        className="h-full transition-all duration-1000 ease-out" 
-        style={{ 
-          width: `${progress}%`, 
-          backgroundColor: color,
-          boxShadow: progress > 0 && progress < 100 ? `0 0 15px ${color}` : 'none'
-        }} 
-      />
-    </div>
-  </div>
-);

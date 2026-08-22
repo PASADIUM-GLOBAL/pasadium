@@ -1,36 +1,58 @@
 import React from 'react';
-import { Cpu, Activity } from 'lucide-react';
+import type { AdminWorker } from '@pasadium/bridge';
 
-export const WorkerOrchestrator = () => {
+interface WorkerOrchestratorProps {
+  workers: AdminWorker[];
+}
+
+export const WorkerOrchestrator = ({
+  workers,
+}: WorkerOrchestratorProps) => {
   return (
-    <div className="flex flex-col h-full font-mono">
-      <div className="flex justify-between items-center mb-8">
-        <div className="flex items-center gap-2">
-          <Cpu className="text-white" size={18} />
-          <h3 className="text-xs font-bold uppercase tracking-widest text-white/90">Engine_Runtimes</h3>
-        </div>
-        <Activity size={14} className="text-green-500 animate-pulse" />
-      </div>
+    <div className="space-y-3">
+      {workers.map((worker) => (
+        <div
+          key={worker.id}
+          className="rounded-2xl border border-white/5 bg-white/[0.02] p-4"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-[11px] font-bold uppercase text-white/80">
+                {worker.name}
+              </div>
 
-      <div className="grid grid-cols-1 gap-4">
-        <WorkerCard engine="MEDIAVERSE_RENDERER" status="BUSY" jobs={12} load="84%" />
-        <WorkerCard engine="SECVERSE_ANOMALY_DETECTOR" status="IDLE" jobs={0} load="4%" />
-        <WorkerCard engine="BRIDGE_OS_ORDER_ROUTER" status="NOMINAL" jobs={4} load="22%" />
-        <WorkerCard engine="MEMORY_OS_VECTOR_SYNC" status="NOMINAL" jobs={1} load="14%" />
-      </div>
+              <div className="text-[9px] font-mono text-white/20">
+                {worker.id}
+              </div>
+            </div>
+
+            <span className="text-[9px] font-mono text-cyan-400">
+              {worker.status}
+            </span>
+          </div>
+
+          <div className="mt-4">
+            <div className="mb-1 flex justify-between text-[9px] font-mono">
+              <span className="text-white/20">ENGINE_LOAD</span>
+              <span className="text-white/50">
+                {worker.load.toFixed(0)}%
+              </span>
+            </div>
+
+            <div className="h-1.5 overflow-hidden rounded-full bg-white/5">
+              <div
+                className="h-full rounded-full bg-cyan-500/40 transition-all duration-500"
+                style={{
+                  width: `${Math.min(
+                    100,
+                    Math.max(0, worker.load)
+                  )}%`,
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 };
-
-const WorkerCard = ({ engine, status, jobs, load }: any) => (
-  <div className="p-4 bg-white/5 border border-white/5 rounded-lg flex items-center justify-between">
-    <div>
-      <div className="text-[10px] font-bold text-white/80 mb-1">{engine}</div>
-      <div className="text-[9px] text-white/30 uppercase tracking-tighter">Jobs_In_Queue: {jobs}</div>
-    </div>
-    <div className="text-right">
-       <div className={`text-[10px] font-bold ${status === 'BUSY' ? 'text-yellow-500' : 'text-green-500'}`}>{status}</div>
-       <div className="text-[9px] font-mono text-white/20">LOAD: {load}</div>
-    </div>
-  </div>
-);

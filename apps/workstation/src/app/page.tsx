@@ -17,7 +17,6 @@ import {
 
 import { useAuthority } from "../hooks/useAuthority";
 import { LoginFacade } from "../modules/auth/LoginFacade";
-import { BrandOSRuntime } from "../components/BrandOSRuntime";
 
 export default function WorkstationPage() {
   const { state, setState } = useWorkstationState();
@@ -52,13 +51,12 @@ export default function WorkstationPage() {
   }
 
   return (
-    <BrandOSRuntime>
-      <AppShell
-        appName="PASADIUM WORKSTATION"
-        navigation={navigation}
-        activeModule={activeModule}
-        onModuleChange={handleModuleChange}
-      >
+    <AppShell
+      appName="PASADIUM WORKSTATION"
+      navigation={navigation}
+      activeModule={activeModule}
+      onModuleChange={handleModuleChange}
+    >
         <AnimatePresence mode="wait">
           <motion.div
             key={activeModule}
@@ -79,6 +77,5 @@ export default function WorkstationPage() {
           </motion.div>
         </AnimatePresence>
       </AppShell>
-    </BrandOSRuntime>
-  );
+    );
 }

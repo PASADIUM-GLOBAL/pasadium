@@ -1,65 +1,55 @@
 import { useState, useEffect } from 'react';
-import { BrandOS } from '@pasadium/bridge';
-import { MediaProject, NarrativeRequest, NarrativeResult, ProductionAsset } from '@pasadium/bridge/src/contracts/media';
+import { useAuth } from '../../../context/AuthContext';
+import type { MediaJob, DistributionNetwork } from '@pasadium/bridge';
 
-export function useMedia() {
-  const [project, setProject] = useState<MediaProject | null>(null);
-  const [narrative, setNarrative] = useState<NarrativeResult | null>(null);
-  const [productionStatus, setProductionStatus] = useState<any>(null);
-  const [assets, setAssets] = useState<ProductionAsset[]>([]);
-  const [loading, setLoading] = useState(false);
+export const useMedia = () => {
+  const { bridge } = useAuth();
+  const [activeJob, setActiveJob] = useState<MediaJob | null>(null);
+  const [isDispatching, setIsDispatching] = useState(false);
+  const [network, setNetwork] = useState<DistributionNetwork | null>(null);
 
-  async function createProject(request: NarrativeRequest) {
-    setLoading(true);
+  const dispatchMedia = async (prompt: string) => {
+    setIsDispatching(true);
     try {
-      const res = await BrandOS.media.createProject(request);
-      setProject(res);
-      return res;
+      const job = await bridge.media.dispatch(prompt);
+      setActiveJob(job);
+      return job;
+    } catch (err) {
+      console.error("DISPATCH_FAILURE:", err);
     } finally {
-      setLoading(false);
+      setIsDispatching(false);
     }
-  }
-
-  async function generateNarrative(projectId: string) {
-    setLoading(true);
-    try {
-      const res = await BrandOS.media.generateNarrative(projectId);
-      setNarrative(res);
-      return res;
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function syncProductionStatus(projectId: string) {
-    try {
-      const res = await BrandOS.media.getProductionStatus(projectId);
-      setProductionStatus(res);
-    } catch (e) {
-      console.error("Production status sync failed", e);
-    }
-  }
-
-  async function syncAssets(projectId: string) {
-    try {
-      const res = await BrandOS.media.getAssets(projectId);
-      setAssets(res);
-    } catch (e) {
-      console.error("Assets sync failed", e);
-    }
-  }
-
-  return {
-    project,
-    setProject,
-    narrative,
-    setNarrative,
-    productionStatus,
-    assets,
-    loading,
-    createProject,
-    generateNarrative,
-    syncProductionStatus,
-    syncAssets
   };
-}
+
+  const getStatus = async (id: string) => {
+    return await bridge.media.getJobStatus(id);
+  };
+
+  const fetchNetwork = async () => {
+    try {
+      const data = await bridge.media.getDistribution();
+      setNetwork(data);
+    } catch (err) {
+      console.error("DISTRIBUTION_SYNC_FAILURE:", err);
+    }
+  };
+
+  // Polling logic to keep job statuses updated
+  useEffect(() => {
+    if (!activeJob || activeJob.status === 'COMPLETED' || activeJob.status === 'FAILED') return;
+
+    const poll = async () => {
+      try {
+        const updatedJob = await bridge.media.getJobStatus(activeJob.id);
+        setActiveJob(updatedJob);
+      } catch (err) {
+        console.error("JOB_POLL_FAILURE:", err);
+      }
+    };
+
+    const interval = setInterval(poll, 5000);
+    return () => clearInterval(interval);
+  }, [activeJob, bridge]);
+
+  return { activeJob, isDispatching, dispatchMedia, getStatus, setActiveJob, network, fetchNetwork };
+};

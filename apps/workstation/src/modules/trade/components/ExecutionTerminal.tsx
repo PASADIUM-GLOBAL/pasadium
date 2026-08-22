@@ -1,14 +1,29 @@
 import React, { useState } from 'react';
-import { useMarketData } from '../../../context/MarketContext';
+import { useTrade } from '../hooks/useTrade';
 import { BRAND_COLORS } from '@pasadium/config';
 
 export const ExecutionTerminal = () => {
-  const { price } = useMarketData();
-  const [quantity, setQuantity] = useState('0.00');
+  const { placeOrder } = useTrade();
+  const [amount, setAmount] = useState('0.1');
+  const [ticker] = useState('BTC/USD');
   const [side, setSide] = useState<'BUY' | 'SELL'>('BUY');
-  const [authText, setAuthText] = useState('');
+  const [status, setStatus] = useState<'IDLE' | 'EXECUTING' | 'SUCCESS' | 'ERROR'>('IDLE');
+  const [confirmText, setConfirmText] = useState('');
 
-  const estimatedValue = (parseFloat(quantity) || 0) * price;
+  const estimatedValue = (parseFloat(amount) || 0) * 64208.40;
+
+  const handleDispatch = async () => {
+    if (confirmText !== "EXECUTE ORDER") return;
+    setStatus('EXECUTING');
+    try {
+      await placeOrder({ ticker, amount: Number(amount), side });
+      setStatus('SUCCESS');
+      setTimeout(() => setStatus('IDLE'), 3000);
+    } catch (err) {
+      setStatus('ERROR');
+      setTimeout(() => setStatus('IDLE'), 3000);
+    }
+  };
 
   return (
     <div className="bg-[#0A0C12]/80 border border-white/5 backdrop-blur-3xl rounded-[40px] p-8 h-full flex flex-col shadow-2xl relative overflow-hidden">
@@ -17,7 +32,6 @@ export const ExecutionTerminal = () => {
       <h3 className="text-[11px] font-bold tracking-[0.4em] text-white/40 uppercase mb-8">Authority_Portal</h3>
 
       <div className="space-y-6 flex-1">
-        {/* Side Toggle */}
         <div className="grid grid-cols-2 p-1.5 bg-black/40 rounded-2xl border border-white/5">
            <button 
              onClick={() => setSide('BUY')}
@@ -33,18 +47,16 @@ export const ExecutionTerminal = () => {
            </button>
         </div>
 
-        {/* Inputs */}
         <div className="space-y-4">
-          <TradeInput label="Entry_Price" value={price.toFixed(2)} readOnly unit="USD" />
+          <TradeInput label="Entry_Price" value="64208.40" readOnly unit="USD" />
           <TradeInput 
             label="Order_Quantity" 
-            value={quantity} 
+            value={amount} 
             unit="BTC" 
-            onChange={(val) => setQuantity(val)} 
+            onChange={(val) => setAmount(val)} 
           />
         </div>
 
-        {/* Risk Preview */}
         <div className="p-5 bg-white/[0.02] border border-white/5 rounded-2xl space-y-2">
            <div className="flex justify-between text-[10px] font-mono text-white/30">
              <span className="uppercase">ESTIMATED_VALUE</span>
@@ -56,28 +68,30 @@ export const ExecutionTerminal = () => {
            </div>
            <div className="pt-2 border-t border-white/5 flex justify-between items-center">
               <span className="text-[10px] font-mono text-white/30">RISK_STATUS</span>
-              <span className="text-[10px] font-bold text-green-400 font-mono">● WITHIN_LIMITS</span>
+              <span className={`text-[10px] font-bold font-mono ${status === 'ERROR' ? 'text-red-400' : 'text-green-400'}`}>
+                {status === 'EXECUTING' ? '● PROCESSING' : status === 'SUCCESS' ? '● FILLED' : '● WITHIN_LIMITS'}
+              </span>
            </div>
         </div>
       </div>
 
-      {/* LINGUISTIC GATE */}
       <div className="mt-auto space-y-4">
         <p className="text-[9px] font-mono text-white/20 text-center uppercase tracking-widest italic">
           Manual_Intent_Authorization_Required
         </p>
         <input 
           type="text" 
-          value={authText}
-          onChange={(e) => setAuthText(e.target.value)}
-          placeholder={`TYPE 'EXECUTE ${side}'`} 
+          value={confirmText}
+          onChange={(e) => setConfirmText(e.target.value)}
+          placeholder={`TYPE 'EXECUTE ORDER'`} 
           className="w-full bg-black border border-white/10 rounded-2xl px-6 py-4 text-center font-mono text-xs tracking-[0.2em] focus:border-cyan-500/50 outline-none transition-all placeholder:text-white/10"
         />
         <button 
-          disabled={authText !== `EXECUTE ${side}`}
-          className={`w-full py-5 rounded-2xl font-bold text-sm tracking-[0.2em] uppercase transition-all active:scale-[0.98] ${authText === `EXECUTE ${side}` ? 'bg-white text-black hover:bg-cyan-400 shadow-xl' : 'bg-white/5 text-white/20 cursor-not-allowed'}`}
+          disabled={confirmText !== "EXECUTE ORDER" || status === 'EXECUTING'}
+          onClick={handleDispatch}
+          className={`w-full py-5 rounded-2xl font-bold text-sm tracking-[0.2em] uppercase transition-all active:scale-[0.98] ${confirmText === "EXECUTE ORDER" && status !== 'EXECUTING' ? 'bg-white text-black hover:bg-cyan-400 shadow-xl' : 'bg-white/5 text-white/20 cursor-not-allowed'}`}
         >
-          Dispatch_Intent
+          {status === 'EXECUTING' ? 'DISPATCHING...' : 'Dispatch_Intent'}
         </button>
       </div>
     </div>

@@ -1,50 +1,51 @@
-import { useState, useEffect } from 'react';
-import { BrandOS } from '@pasadium/bridge';
-import { SupplyChainNode, InventoryItem, MarginCalculation } from '@pasadium/bridge/src/contracts/market';
+import { useState, useCallback } from 'react';
+import { useAuth } from '../../../context/AuthContext';
+import type { MarginBreakdown, LogisticsStatus } from '@pasadium/bridge';
 
-export function useMarket() {
-  const [supplyChain, setSupplyChain] = useState<SupplyChainNode[]>([]);
-  const [inventory, setInventory] = useState<InventoryItem[]>([]);
-  const [margin, setMargin] = useState<MarginCalculation | null>(null);
-  const [loading, setLoading] = useState(true);
+export const useMarket = () => {
+  const { bridge } = useAuth();
+  const [inventory, setInventory] = useState<any[]>([]);
+  const [marginData, setMarginData] = useState<MarginBreakdown | null>(null);
+  const [logistics, setLogistics] = useState<LogisticsStatus | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  async function syncMarketData() {
+  const fetchInventory = useCallback(async () => {
     setLoading(true);
     try {
-      const [sc, inv] = await Promise.all([
-        BrandOS.market.getSupplyChainStatus(),
-        BrandOS.market.getInventory()
-      ]);
-      setSupplyChain(sc);
-      setInventory(inv);
-    } catch (e) {
-      console.error("Market data sync failed", e);
+      const data = await bridge.market.getInventory();
+      setInventory(data);
     } finally {
       setLoading(false);
     }
-  }
+  }, [bridge]);
 
-  useEffect(() => {
-    syncMarketData();
-  }, []);
-
-  async function calculateProductMargin(productId: string) {
+  const fetchMargin = async (productId: string) => {
     try {
-      const res = await BrandOS.market.calculateMargin(productId);
-      setMargin(res);
-      return res;
-    } catch (e) {
-      console.error("Margin calculation failed", e);
-      throw e;
+      const data = await bridge.market.calculateMargin(productId);
+      setMarginData(data);
+    } catch (err) {
+      console.error("MARGIN_CALC_FAILURE:", err);
     }
-  }
-
-  return {
-    supplyChain,
-    inventory,
-    margin,
-    loading,
-    syncMarketData,
-    calculateProductMargin
   };
-}
+
+  const fetchLogistics = async () => {
+    try {
+      const data = await bridge.market.getLogistics();
+      setLogistics(data);
+    } catch (err) {
+      console.error("LOGISTICS_SYNC_FAILURE:", err);
+    }
+  };
+
+  const purchase = async (id: string) => {
+    try {
+      await bridge.market.purchase(id);
+      await fetchInventory(); // Auto-refresh truth
+    } catch (err) {
+      console.error("Purchase failed:", err);
+      throw err;
+    }
+  };
+
+  return { inventory, marginData, logistics, loading, fetchInventory, purchase, fetchMargin, fetchLogistics };
+};

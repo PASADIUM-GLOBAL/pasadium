@@ -4,13 +4,13 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ShieldLock, ArrowRight, Fingerprint } from 'lucide-react';
 import { AuroraPulse } from '@pasadium/ui';
-import { useAuthority } from '../../hooks/useAuthority';
+import { useAuth } from '../../context/AuthContext';
 
 export const LoginFacade = () => {
   const [loading, setLoading] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const setSession = useAuthority((state) => state.setSession);
+  const { setToken, bridge } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,15 +19,12 @@ export const LoginFacade = () => {
     setLoading(true);
     
     try {
-      // In production, this would call auth.pasadium.tech/auth/login
-      // For simulation, we simulate a successful handshake
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const response = await bridge.auth.login({ username, password });
       
-      setSession('mock_svrn_token_0xdeadbeef', {
-        id: 'user_01',
-        username: username,
-        roles: ['Trader', 'Operator']
-      });
+      // Response is { data: { token, user } }
+      const { token } = response;
+      
+      setToken(token);
     } catch (error) {
       console.error('Login failed:', error);
     } finally {

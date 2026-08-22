@@ -1,94 +1,33 @@
-import { useState, useEffect } from 'react';
-import { BrandOS } from '@pasadium/bridge';
-import { MarketData, MarketIntelligence, OrderRequest, OrderPreview, OrderIntent, OrderResult } from '@pasadium/bridge/src/contracts/trade';
+import { useState, useCallback } from 'react';
+import { useAuth } from '../../../context/AuthContext';
 
-export function useOrderBook(instrument: string) {
-  const [data, setData] = useState<MarketData | null>(null);
-  const [loading, setLoading] = useState(true);
+export const useTrade = () => {
+  const { bridge } = useAuth();
+  const [tickers, setTickers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    async function load() {
-      setLoading(true);
-      try {
-        const res = await BrandOS.trade.getOrderBook(instrument);
-        setData(res);
-      } catch (e) {
-        console.error("OrderBook sync failed", e);
-      } finally {
-        setLoading(false);
-      }
-    }
-    load();
-  }, [instrument]);
-
-  return { data, loading };
-}
-
-export function useMarketIntelligence(instrument: string) {
-  const [intel, setIntel] = useState<MarketIntelligence | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function load() {
-      setLoading(true);
-      try {
-        const res = await BrandOS.trade.getIntelligence(instrument);
-        setIntel(res);
-      } catch (e) {
-        console.error("Intel sync failed", e);
-      } finally {
-        setLoading(false);
-      }
-    }
-    load();
-  }, [instrument]);
-
-  return { intel, loading };
-}
-
-export function useOrderExecution() {
-  const [status, setStatus] = useState<'IDLE' | 'PREVIEWING' | 'EXECUTING' | 'FILLED' | 'ERROR'>('IDLE');
-  const [preview, setPreview] = useState<OrderPreview | null>(null);
-  const [result, setResult] = useState<OrderResult | null>(null);
-
-  async function previewOrder(request: OrderRequest) {
-    setStatus('PREVIEWING');
+  const fetchTickers = useCallback(async () => {
+    setLoading(true);
     try {
-      const res = await BrandOS.trade.previewOrder(request);
-      setPreview(res);
-      setStatus('IDLE');
-      return res;
-    } catch (e) {
-      setStatus('ERROR');
-      throw e;
+      const data = await bridge.trade.getTickers();
+      setTickers(data);
+      return data;
+    } finally {
+      setLoading(false);
     }
-  }
+  }, [bridge]);
 
-  async function executeOrder(intent: OrderIntent) {
-    setStatus('EXECUTING');
-    try {
-      const res = await BrandOS.trade.executeOrder(intent);
-      setResult(res);
-      setStatus('FILLED');
-      return res;
-    } catch (e) {
-      setStatus('ERROR');
-      throw e;
-    }
-  }
-
-  function reset() {
-    setPreview(null);
-    setResult(null);
-    setStatus('IDLE');
-  }
-
-  return {
-    status,
-    preview,
-    result,
-    previewOrder,
-    executeOrder,
-    reset
+  const getOrderBook = async (instrument: string) => {
+    return await bridge.trade.getOrderBook(instrument);
   };
-}
+
+  const getIntelligence = async (instrument: string) => {
+    return await bridge.trade.getIntelligence(instrument);
+  };
+
+  const placeOrder = async (params: any) => {
+    return await bridge.trade.execute(params);
+  };
+
+  return { tickers, loading, fetchTickers, getOrderBook, getIntelligence, placeOrder };
+};

@@ -8,7 +8,7 @@ import {
 } from '../contracts';
 import { TradeCapability } from '../contracts/trade';
 import { DistributionTarget, MediaCapability, MediaProject, NarrativeResult, NarrativeRequest } from '../contracts/media';
-import { MarketCapability, SupplyChainNode, InventoryItem, MarginCalculation } from '../contracts/market';
+import { MarketCapability, SupplyChainNode, InventoryItem, MarginBreakdown } from '../contracts/market';
 import { SecurityCapability, AuditLog } from '../contracts/security';
 
 export class SimulationRuntime implements BrandOSRuntime {
@@ -107,10 +107,10 @@ export class SimulationRuntime implements BrandOSRuntime {
     },
     getDistributionTargets: async (): Promise<DistributionTarget[]> => {
       return [
-        { platform: 'YouTube_Shorts', status: 'READY' },
-        { platform: 'Instagram_Reels', status: 'READY' },
-        { platform: 'Meta_Stories', status: 'READY' },
-        { platform: 'Discord_Oracle', status: 'AUTO_DISPATCH' },
+        { id: 't-01', platform: 'YOUTUBE', status: 'READY', label: 'YouTube_Shorts', reachProjection: 85000 },
+        { id: 't-02', platform: 'INSTAGRAM', status: 'READY', label: 'Instagram_Reels', reachProjection: 42000 },
+        { id: 't-03', platform: 'X', status: 'READY', label: 'Meta_Stories', reachProjection: 125000 },
+        { id: 't-04', platform: 'DISCORD', status: 'AUTO', label: 'Discord_Oracle', reachProjection: 15000 },
       ];
     },
     getAssets: async (projectId: string) => {
@@ -143,13 +143,16 @@ export class SimulationRuntime implements BrandOSRuntime {
         { name: 'MediaVerse_Consulting', price: '$1,200.00', type: 'SERVICE', status: 'AVAILABLE' },
       ];
     },
-    calculateMargin: async (productId: string): Promise<MarginCalculation> => {
+    calculateMargin: async (productId: string): Promise<MarginBreakdown> => {
       return {
-        sourcingCost: '$142.20',
-        tariffs: '$12.50',
-        shipping: '$22.00',
-        targetProfit: '+ 35%',
-        finalPrice: '$238.54'
+        sourcingCost: 142.20,
+        importTariffs: 12.50,
+        platformFee: 22.00,
+        calculatedMargin: 45.00,
+        finalListPrice: 238.54,
+        markupPercentage: 35,
+        isHedged: true,
+        isDynamicMarkup: true
       };
     },
     synchronizeStorefront: async (provider) => {

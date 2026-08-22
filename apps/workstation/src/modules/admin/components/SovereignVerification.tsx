@@ -1,31 +1,68 @@
 import React from 'react';
-import { Check, X, ExternalLink } from 'lucide-react';
+import type { AdminVerification } from '@pasadium/bridge';
 
-export const SovereignVerification = () => {
+interface SovereignVerificationProps {
+  verification: AdminVerification | null;
+}
+
+export const SovereignVerification = ({
+  verification,
+}: SovereignVerificationProps) => {
+  if (!verification) {
+    return (
+      <div className="p-8 text-[9px] font-mono text-white/20 uppercase">
+        Awaiting_Verification_Target
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col h-full">
-      <h3 className="text-xs font-bold text-yellow-500 uppercase tracking-widest mb-6">Verification_Required</h3>
-      
-      <div className="space-y-4">
-        <div className="p-4 bg-yellow-500/5 border border-yellow-500/20 rounded-xl space-y-3">
-          <div className="flex justify-between items-start">
-            <span className="text-[10px] font-mono text-yellow-500/60 uppercase">Order_ID: #B_8824</span>
-            <span className="text-xs font-bold text-white">$14,200.00</span>
-          </div>
-          <p className="text-[10px] text-white/50 font-mono italic leading-tight">
-            Asset: "Nvidia_H100_Nodes" <br />
-            Source: Alibaba_Global_Procurement
-          </p>
-          <div className="flex gap-2">
-            <button className="flex-1 py-2 bg-green-500/20 text-green-400 border border-green-500/20 rounded text-[9px] font-bold flex items-center justify-center gap-1 hover:bg-green-500/40">
-              <Check size={12} /> VERIFY_SVRN
-            </button>
-            <button className="p-2 bg-red-500/20 text-red-400 border border-red-500/20 rounded hover:bg-red-500/40">
-              <X size={12} />
-            </button>
-          </div>
+    <div className="rounded-[28px] border border-white/5 bg-white/[0.02] p-6">
+      <div className="mb-6 flex justify-between">
+        <div>
+          <span className="text-[9px] font-mono tracking-[0.3em] text-white/20 uppercase">
+            Sovereign_Verification
+          </span>
+
+          <h3 className="mt-2 text-xl font-bold text-white">
+            {verification.reference}
+          </h3>
         </div>
+
+        <span className="text-[9px] font-mono text-cyan-400">
+          {verification.status}
+        </span>
+      </div>
+
+      <div className="space-y-4 text-[10px] font-mono">
+        <VerificationRow
+          label="TYPE"
+          value={verification.type}
+        />
+
+        <VerificationRow
+          label="ASSET"
+          value={verification.asset}
+        />
+
+        <VerificationRow
+          label="TIMESTAMP"
+          value={verification.timestamp}
+        />
       </div>
     </div>
   );
 };
+
+const VerificationRow = ({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) => (
+  <div className="flex justify-between border-b border-white/5 pb-3">
+    <span className="text-white/20">{label}</span>
+    <span className="text-white/60">{value}</span>
+  </div>
+);
